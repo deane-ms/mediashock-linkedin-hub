@@ -100,6 +100,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   html, body { height: 100%; }
   body {
     margin: 0;
@@ -308,6 +309,34 @@
   .tab-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .tab-panel[hidden] { display: none; }
 
+  /* ---------- content planner (kanban) ---------- */
+  .planner-sub { margin: 0; font-size: 0.85rem; color: var(--text-soft); }
+  .kanban-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; align-items: start; margin-top: 1.2rem; }
+  .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.8rem; min-height: 8rem; min-width: 0; }
+  .kanban-col-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+  .kanban-col-head h3 { margin: 0; font-size: 0.82rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+  .kanban-count { font-size: 0.68rem; font-weight: 700; color: var(--text-faint); background: var(--surface-alt); border-radius: 999px; padding: 0.05rem 0.5rem; }
+  .kanban-cards { display: flex; flex-direction: column; gap: 0.55rem; }
+  .idea-card {
+    all: unset; cursor: pointer; display: block; box-sizing: border-box; width: 100%;
+    border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
+    border-radius: 8px; padding: 0.55rem 0.65rem; font-size: 0.78rem; line-height: 1.35;
+  }
+  .idea-card:hover { background: color-mix(in srgb, var(--dot) 18%, var(--surface)); }
+  .idea-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .idea-card .ic-title { color: var(--text); font-weight: 600; display: block; }
+  .idea-card .ic-notes { color: var(--text-soft); display: block; margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .idea-card .ic-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; font-size: 0.66rem; color: var(--text-faint); }
+  .kanban-empty { color: var(--text-faint); font-size: 0.78rem; padding: 0.4rem 0.2rem; }
+  .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
+  .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
+  .feedback-item .fb-date { display: block; font-size: 0.65rem; color: var(--text-faint); margin-bottom: 0.15rem; font-family: var(--font-mono); }
+  .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
+  .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; margin: 0.2rem 0 0.9rem; }
+  .idea-stage-row label { flex: 1; }
+  .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+  .feedback-input-row textarea { flex: 1; min-height: 3.4rem; }
+
   /* ---------- analytics: header + sample badge ---------- */
   .analytics-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
   .analytics-head h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
@@ -425,9 +454,11 @@
 
   @media (max-width: 980px) {
     .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .kanban-board { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 720px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .kanban-board { grid-template-columns: 1fr; }
   }
 
   /* ---------- modal ---------- */
@@ -447,8 +478,8 @@
   .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
 
-  #postForm { display: flex; flex-direction: column; gap: 0.9rem; }
-  #postForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0.9rem; }
+  #postForm label, #ideaForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
   input, select, textarea {
     border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
@@ -530,6 +561,7 @@
 
   <div class="tabs" role="tablist" aria-label="Content Hub sections">
     <button class="tab-btn active" data-tab="calendar" role="tab" aria-selected="true">Calendar</button>
+    <button class="tab-btn" data-tab="planner" role="tab" aria-selected="false">Content Planner</button>
     <button class="tab-btn" data-tab="analytics" role="tab" aria-selected="false">Analytics</button>
   </div>
 
@@ -557,6 +589,14 @@
       <h3 class="upcoming-title">Upcoming posts</h3>
       <div id="upcomingList" class="upcoming-list"></div>
     </div>
+  </section>
+
+  <section class="tab-panel" id="plannerView" hidden>
+    <div class="toolbar">
+      <p class="planner-sub">Drop in raw ideas, gather feedback, and iterate until they're ready to schedule.</p>
+      <button type="button" class="btn btn-primary" id="newIdeaBtn">+ New Idea</button>
+    </div>
+    <div class="kanban-board" id="kanbanBoard"></div>
   </section>
 
   <section class="tab-panel" id="analyticsView" hidden>
@@ -827,6 +867,48 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="ideaBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
+    <div class="modal-head">
+      <h3 id="ideaModalTitle">New Idea</h3>
+      <button class="icon-btn" id="ideaModalClose" aria-label="Close">✕</button>
+    </div>
+    <form id="ideaForm">
+      <label>Idea Title
+        <input type="text" id="i-title" placeholder="e.g. Behind the scenes of our Q3 flagship shoot" required>
+      </label>
+      <div class="field-row">
+        <label>Content Bucket
+          <select id="i-bucket" required></select>
+        </label>
+      </div>
+      <label for="i-notes">Idea / Brief</label>
+      <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
+
+      <div class="idea-stage-row">
+        <label>Stage
+          <select id="i-stage"></select>
+        </label>
+      </div>
+
+      <label style="margin-bottom:0.3rem;">Feedback &amp; iteration log</label>
+      <div class="feedback-log" id="feedbackLog"></div>
+      <div class="feedback-input-row">
+        <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+        <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
+      </div>
+
+      <div class="modal-actions" style="margin-top:1.1rem;">
+        <button type="button" class="btn btn-danger" id="deleteIdeaBtn" hidden>Delete</button>
+        <div class="spacer"></div>
+        <button type="button" class="btn btn-ghost" id="sendToCalendarBtn" hidden>Send to Calendar →</button>
+        <button type="button" class="btn btn-ghost" id="ideaCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Idea</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="bucketsBackdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bucketsTitle">
     <div class="modal-head">
@@ -974,7 +1056,59 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
   }
 
+  // ---------- content planner ----------
+  var PLANNER_KEY = "mediashock-linkedin-planner-v1";
+  var IDEA_STAGES = [
+    { key: "idea", label: "New Idea" },
+    { key: "review", label: "In Review" },
+    { key: "revise", label: "Needs Changes" },
+    { key: "approved", label: "Approved" }
+  ];
+  var SEED_IDEAS = [
+    {
+      id: "idea-seed-1", title: "Why we still shoot on-site instead of remote-only",
+      bucket: "industry", stage: "idea", createdAt: "2026-07-10T09:00:00.000Z",
+      notes: "A hot take on why flagship events still need boots-on-the-ground crews, even as remote/AI production tools improve. Tie back to Content Choreography — you can't choreograph a room's energy from a Zoom feed.",
+      feedback: []
+    },
+    {
+      id: "idea-seed-2", title: "Client onboarding: what we ask for in week one",
+      bucket: "case", stage: "review", createdAt: "2026-07-08T09:00:00.000Z",
+      notes: "Walk through the questions we ask new clients before any filming starts — positions us as consultants, not just a camera crew.",
+      feedback: [
+        { text: "Good angle — can we anonymize and pull from a real recent onboarding instead of speaking generally?", date: "2026-07-11T10:20:00.000Z" }
+      ]
+    },
+    {
+      id: "idea-seed-3", title: "Team spotlight: our new colourist", stage: "revise",
+      bucket: "news", createdAt: "2026-07-05T09:00:00.000Z",
+      notes: "Introduce the newest hire on the post-production side.",
+      feedback: [
+        { text: "Needs a quote from them directly, feels generic right now.", date: "2026-07-09T14:00:00.000Z" },
+        { text: "Also add a before/after grade example if we can share one.", date: "2026-07-12T11:30:00.000Z" }
+      ]
+    }
+  ];
+
+  function loadIdeas() {
+    try {
+      var raw = localStorage.getItem(PLANNER_KEY);
+      if (!raw) {
+        localStorage.setItem(PLANNER_KEY, JSON.stringify(SEED_IDEAS));
+        return SEED_IDEAS.slice();
+      }
+      return JSON.parse(raw);
+    } catch (e) {
+      return SEED_IDEAS.slice();
+    }
+  }
+  function saveIdeas() {
+    localStorage.setItem(PLANNER_KEY, JSON.stringify(ideas));
+  }
+
   var posts = loadPosts();
+  var ideas = loadIdeas();
+  var editingIdeaId = null;
   var view = "month";
   var cursor = new Date(); cursor.setHours(0, 0, 0, 0);
   var editingId = null;
@@ -986,9 +1120,9 @@
         b.classList.toggle("active", b === btn);
         b.setAttribute("aria-selected", b === btn ? "true" : "false");
       });
-      var isCalendar = btn.dataset.tab === "calendar";
-      document.getElementById("calendarView").hidden = !isCalendar;
-      document.getElementById("analyticsView").hidden = isCalendar;
+      document.querySelectorAll(".tab-panel").forEach(function (panel) {
+        panel.hidden = panel.id !== (btn.dataset.tab + "View");
+      });
     });
   });
 
@@ -1320,7 +1454,7 @@
     if (willOpen) { renderEmojiTabs(); renderEmojiGrid(); }
   });
 
-  function openModal(postId, prefillDate) {
+  function openModal(postId, prefillDate, prefillData) {
     lastFocused = document.activeElement;
     editingId = postId;
     deleteArmed = false;
@@ -1343,10 +1477,14 @@
     } else {
       modalTitle.textContent = "New Post";
       postForm.reset();
-      fBucket.value = buckets[0] ? buckets[0].key : "";
+      fBucket.value = (prefillData && prefillData.bucket) || (buckets[0] ? buckets[0].key : "");
       fStatus.value = "draft";
       fDate.value = prefillDate || dateKey(new Date());
       fTime.value = "09:00";
+      if (prefillData) {
+        fTitle.value = prefillData.title || "";
+        fCopy.value = prefillData.copy || "";
+      }
       currentImages = [];
       deleteBtn.hidden = true;
     }
@@ -1412,6 +1550,188 @@
     savePosts();
     closeModal();
     render();
+  });
+
+  // ---------- content planner ----------
+  var ideaBackdrop = document.getElementById("ideaBackdrop");
+  var ideaModalTitle = document.getElementById("ideaModalTitle");
+  var ideaForm = document.getElementById("ideaForm");
+  var iTitle = document.getElementById("i-title");
+  var iBucket = document.getElementById("i-bucket");
+  var iNotes = document.getElementById("i-notes");
+  var iStage = document.getElementById("i-stage");
+  var iFeedbackInput = document.getElementById("i-feedback-input");
+  var feedbackLogEl = document.getElementById("feedbackLog");
+  var deleteIdeaBtn = document.getElementById("deleteIdeaBtn");
+  var sendToCalendarBtn = document.getElementById("sendToCalendarBtn");
+  var addFeedbackBtn = document.getElementById("addFeedbackBtn");
+  var ideaDeleteArmed = false;
+  var ideaLastFocused = null;
+
+  function ideaByKey(key) { return IDEA_STAGES.find(function (s) { return s.key === key; }); }
+
+  function renderKanbanBoard() {
+    var board = document.getElementById("kanbanBoard");
+    board.innerHTML = IDEA_STAGES.map(function (stage) {
+      var inStage = ideas.filter(function (idea) { return idea.stage === stage.key; });
+      var cards = inStage.length
+        ? inStage.map(function (idea) {
+            var fbCount = (idea.feedback || []).length;
+            return '<button type="button" class="idea-card" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
+              '<span class="ic-title">' + escapeHtml(idea.title) + '</span>' +
+              (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
+              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (fbCount ? ' · 💬 ' + fbCount : '') + '</span>' +
+              '</button>';
+          }).join("")
+        : '<p class="kanban-empty">No ideas here yet.</p>';
+      return '<div class="kanban-col">' +
+        '<div class="kanban-col-head"><h3>' + stage.label + '</h3><span class="kanban-count">' + inStage.length + '</span></div>' +
+        '<div class="kanban-cards">' + cards + '</div>' +
+        '</div>';
+    }).join("");
+
+    board.querySelectorAll(".idea-card").forEach(function (btn) {
+      btn.addEventListener("click", function () { openIdeaModal(btn.dataset.id); });
+    });
+  }
+
+  function renderIdeaBucketOptions() {
+    var current = iBucket.value;
+    iBucket.innerHTML = buckets.map(function (b) {
+      return '<option value="' + b.key + '">' + escapeHtml(b.label) + '</option>';
+    }).join("");
+    if (bucketByKey(current)) iBucket.value = current;
+  }
+
+  function renderIdeaStageOptions() {
+    iStage.innerHTML = IDEA_STAGES.map(function (s) {
+      return '<option value="' + s.key + '">' + s.label + '</option>';
+    }).join("");
+  }
+
+  function renderFeedbackLog(feedback) {
+    var list = feedback || [];
+    feedbackLogEl.innerHTML = list.length
+      ? list.map(function (f) {
+          return '<div class="feedback-item"><span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span>' + escapeHtml(f.text) + '</div>';
+        }).join("")
+      : '<p class="feedback-empty">No feedback logged yet.</p>';
+    feedbackLogEl.scrollTop = feedbackLogEl.scrollHeight;
+  }
+
+  function openIdeaModal(ideaId) {
+    ideaLastFocused = document.activeElement;
+    editingIdeaId = ideaId;
+    ideaDeleteArmed = false;
+    resetIdeaDeleteBtn();
+    renderIdeaBucketOptions();
+    renderIdeaStageOptions();
+
+    if (ideaId) {
+      var idea = ideas.find(function (i) { return i.id === ideaId; });
+      if (!idea) return;
+      ideaModalTitle.textContent = "Edit Idea";
+      iTitle.value = idea.title;
+      iBucket.value = idea.bucket;
+      iNotes.value = idea.notes || "";
+      iStage.value = idea.stage;
+      renderFeedbackLog(idea.feedback);
+      deleteIdeaBtn.hidden = false;
+      sendToCalendarBtn.hidden = idea.stage !== "approved";
+    } else {
+      ideaModalTitle.textContent = "New Idea";
+      ideaForm.reset();
+      iBucket.value = buckets[0] ? buckets[0].key : "";
+      iStage.value = "idea";
+      renderFeedbackLog([]);
+      deleteIdeaBtn.hidden = true;
+      sendToCalendarBtn.hidden = true;
+    }
+    iFeedbackInput.value = "";
+    ideaBackdrop.classList.add("open");
+    ideaBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { iTitle.focus(); }, 10);
+  }
+
+  function closeIdeaModal() {
+    ideaBackdrop.classList.remove("open");
+    editingIdeaId = null;
+    if (ideaLastFocused && typeof ideaLastFocused.focus === "function") ideaLastFocused.focus();
+  }
+
+  function resetIdeaDeleteBtn() {
+    ideaDeleteArmed = false;
+    deleteIdeaBtn.textContent = "Delete";
+    deleteIdeaBtn.classList.remove("btn-primary");
+  }
+
+  document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
+  document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
+  document.getElementById("ideaCancelBtn").addEventListener("click", closeIdeaModal);
+  ideaBackdrop.addEventListener("click", function (e) { if (e.target === ideaBackdrop) closeIdeaModal(); });
+
+  ideaForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var data = {
+      title: iTitle.value.trim(),
+      bucket: iBucket.value,
+      notes: iNotes.value,
+      stage: iStage.value
+    };
+    if (!data.title) return;
+
+    if (editingIdeaId) {
+      var idx = ideas.findIndex(function (i) { return i.id === editingIdeaId; });
+      if (idx > -1) ideas[idx] = Object.assign({}, ideas[idx], data);
+    } else {
+      data.id = "idea-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+      data.createdAt = new Date().toISOString();
+      data.feedback = [];
+      ideas.push(data);
+    }
+    saveIdeas();
+    closeIdeaModal();
+    renderKanbanBoard();
+  });
+
+  addFeedbackBtn.addEventListener("click", function () {
+    var text = iFeedbackInput.value.trim();
+    if (!text || !editingIdeaId) return;
+    var idea = ideas.find(function (i) { return i.id === editingIdeaId; });
+    if (!idea) return;
+    idea.feedback = idea.feedback || [];
+    idea.feedback.push({ text: text, date: new Date().toISOString() });
+    saveIdeas();
+    renderFeedbackLog(idea.feedback);
+    renderKanbanBoard();
+    iFeedbackInput.value = "";
+  });
+
+  deleteIdeaBtn.addEventListener("click", function () {
+    if (!editingIdeaId) return;
+    if (!ideaDeleteArmed) {
+      ideaDeleteArmed = true;
+      deleteIdeaBtn.textContent = "Click again to confirm";
+      deleteIdeaBtn.classList.add("btn-primary");
+      return;
+    }
+    ideas = ideas.filter(function (i) { return i.id !== editingIdeaId; });
+    saveIdeas();
+    closeIdeaModal();
+    renderKanbanBoard();
+  });
+
+  sendToCalendarBtn.addEventListener("click", function () {
+    if (!editingIdeaId) return;
+    var idea = ideas.find(function (i) { return i.id === editingIdeaId; });
+    if (!idea) return;
+    closeIdeaModal();
+    document.querySelector('.tab-btn[data-tab="calendar"]').click();
+    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes });
+  });
+
+  iStage.addEventListener("change", function () {
+    sendToCalendarBtn.hidden = iStage.value !== "approved";
   });
 
   // ---------- calendar: legend + bucket select (dynamic) ----------
@@ -2409,6 +2729,7 @@
   document.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
     if (modalBackdrop.classList.contains("open")) closeModal();
+    if (ideaBackdrop.classList.contains("open")) closeIdeaModal();
     if (bucketsBackdrop.classList.contains("open")) closeBucketsModal();
     if (exportBackdrop.classList.contains("open")) closeExport();
     if (importBackdrop.classList.contains("open")) closeImport();
@@ -2418,6 +2739,7 @@
 
   renderLegend();
   render();
+  renderKanbanBoard();
   renderAnalytics();
 })();
 </script>
