@@ -320,13 +320,20 @@
   .idea-card {
     all: unset; cursor: pointer; display: block; box-sizing: border-box; width: 100%;
     border-left: 3px solid var(--dot); background: color-mix(in srgb, var(--dot) 10%, var(--surface));
-    border-radius: 8px; padding: 0.55rem 0.65rem; font-size: 0.78rem; line-height: 1.35;
+    border-radius: 8px; padding: 0.65rem 0.75rem; font-size: 0.78rem; line-height: 1.4;
   }
   .idea-card:hover { background: color-mix(in srgb, var(--dot) 18%, var(--surface)); }
   .idea-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
   .idea-card .ic-title { color: var(--text); font-weight: 600; display: block; }
-  .idea-card .ic-notes { color: var(--text-soft); display: block; margin-top: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .idea-card .ic-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.35rem; font-size: 0.66rem; color: var(--text-faint); }
+  .idea-card .ic-notes {
+    color: var(--text-soft); margin-top: 0.3rem;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+  }
+  .idea-card .ic-feedback {
+    color: var(--text-faint); font-style: italic; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px dashed var(--border);
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  }
+  .idea-card .ic-meta { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.66rem; color: var(--text-faint); }
   .kanban-empty { color: var(--text-faint); font-size: 0.78rem; padding: 0.4rem 0.2rem; }
   .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
@@ -1576,11 +1583,13 @@
       var inStage = ideas.filter(function (idea) { return idea.stage === stage.key; });
       var cards = inStage.length
         ? inStage.map(function (idea) {
-            var fbCount = (idea.feedback || []).length;
+            var fb = idea.feedback || [];
+            var latestFb = fb.length ? fb[fb.length - 1] : null;
             return '<button type="button" class="idea-card" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
               '<span class="ic-title">' + escapeHtml(idea.title) + '</span>' +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
-              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (fbCount ? ' · 💬 ' + fbCount : '') + '</span>' +
+              (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
+              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
               '</button>';
           }).join("")
         : '<p class="kanban-empty">No ideas here yet.</p>';
