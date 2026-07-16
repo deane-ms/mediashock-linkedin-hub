@@ -257,6 +257,21 @@
   .post-card .pc-time { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-faint); }
   .post-card .pc-img-badge { font-size: 0.62rem; color: var(--text-faint); }
 
+  /* ---------- upcoming posts ---------- */
+  .upcoming-card { margin-top: 1.4rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem 1.3rem; box-shadow: var(--shadow-sm); }
+  .upcoming-title { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.8rem; }
+  .upcoming-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .upcoming-item {
+    all: unset; cursor: pointer; display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.55rem 0.6rem; border-radius: 8px; width: 100%; box-sizing: border-box;
+  }
+  .upcoming-item:hover { background: var(--surface-alt); }
+  .upcoming-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+  .upcoming-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .upcoming-date { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-soft); width: 6.2rem; flex-shrink: 0; }
+  .upcoming-title-text { flex: 1; min-width: 0; font-size: 0.85rem; color: var(--text); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .upcoming-empty { color: var(--text-faint); font-size: 0.85rem; padding: 0.3rem 0; }
+
   /* ---------- week grid ---------- */
   .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: start; }
   .week-col { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; min-height: 20rem; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -534,6 +549,11 @@
 
     <div id="weekdayRow" class="weekday-row"></div>
     <div id="calendarRoot"></div>
+
+    <div class="upcoming-card">
+      <h3 class="upcoming-title">Upcoming posts</h3>
+      <div id="upcomingList" class="upcoming-list"></div>
+    </div>
   </section>
 
   <section class="tab-panel" id="analyticsView" hidden>
@@ -998,6 +1018,34 @@
     renderWeekdayRow();
     renderPeriodLabel();
     if (view === "month") renderMonth(); else renderWeek();
+    renderUpcomingPosts();
+  }
+
+  function renderUpcomingPosts() {
+    var el = document.getElementById("upcomingList");
+    var todayKey = dateKey(new Date());
+    var upcoming = posts
+      .filter(function (p) { return p.date >= todayKey; })
+      .sort(function (a, b) { return (a.date + a.time).localeCompare(b.date + b.time); })
+      .slice(0, 10);
+
+    if (!upcoming.length) {
+      el.innerHTML = '<p class="upcoming-empty">No upcoming posts scheduled.</p>';
+      return;
+    }
+
+    el.innerHTML = upcoming.map(function (p) {
+      return '<button type="button" class="upcoming-item" data-id="' + p.id + '">' +
+        '<span class="upcoming-dot" style="background:' + bucketColorFor(p.bucket) + '"></span>' +
+        '<span class="upcoming-date">' + formatDateShort(p.date) + ' · ' + formatTime12(p.time) + '</span>' +
+        '<span class="upcoming-title-text">' + escapeHtml(p.title) + '</span>' +
+        '<span class="status-pill status-' + p.status + '">' + p.status + '</span>' +
+        '</button>';
+    }).join("");
+
+    el.querySelectorAll(".upcoming-item").forEach(function (btn) {
+      btn.addEventListener("click", function () { openModal(btn.dataset.id); });
+    });
   }
 
   function renderWeekdayRow() {
