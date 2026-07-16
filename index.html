@@ -13,9 +13,9 @@
     --text: #1e293b;
     --text-soft: #64748b;
     --text-faint: #94a3b8;
-    --brand: #2563eb;
-    --brand-hover: #1d4ed8;
-    --brand-soft: #eff6ff;
+    --brand: #ff4e20;
+    --brand-hover: #e0431a;
+    --brand-soft: #fff1ec;
     --danger: #dc2626;
     --danger-soft: #fef2f2;
     --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35);
@@ -29,11 +29,10 @@
 
     --s-draft-fg: #64748b;    --s-draft-bg: #f1f5f9;    --s-draft-line: #cbd5e1;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
-    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #2563eb; --s-scheduled-line: #2563eb;
+    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
 
     --good: #15803d;
     --bad: #dc2626;
-    --chart-fill-soft: #dbeafe;
 
     --font: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
     --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
@@ -48,9 +47,9 @@
       --text: #e2e8f0;
       --text-soft: #94a3b8;
       --text-faint: #64748b;
-      --brand: #60a5fa;
-      --brand-hover: #3b82f6;
-      --brand-soft: #1e3a5f;
+      --brand: #ff7a52;
+      --brand-hover: #ff9470;
+      --brand-soft: #3a2015;
       --danger: #f87171;
       --danger-soft: #3f1d1d;
       --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6);
@@ -64,35 +63,34 @@
 
       --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
       --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
-      --s-scheduled-fg: #0f172a; --s-scheduled-bg: #60a5fa; --s-scheduled-line: #60a5fa;
+      --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
       --good: #4ade80;
       --bad: #f87171;
-      --chart-fill-soft: #1e3a5f;
     }
   }
   :root[data-theme="dark"] {
     --bg: #0f172a; --surface: #1e293b; --surface-alt: #172033; --border: #334155;
     --text: #e2e8f0; --text-soft: #94a3b8; --text-faint: #64748b;
-    --brand: #60a5fa; --brand-hover: #3b82f6; --brand-soft: #1e3a5f;
+    --brand: #ff7a52; --brand-hover: #ff9470; --brand-soft: #3a2015;
     --danger: #f87171; --danger-soft: #3f1d1d;
     --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6); --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --b-news: #818cf8; --b-case: #60a5fa; --b-industry: #22d3ee; --b-bts: #94a3b8; --b-promo: #f59e0b;
     --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
     --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
-    --s-scheduled-fg: #0f172a; --s-scheduled-bg: #60a5fa; --s-scheduled-line: #60a5fa;
-    --good: #4ade80; --bad: #f87171; --chart-fill-soft: #1e3a5f;
+    --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
+    --good: #4ade80; --bad: #f87171;
   }
   :root[data-theme="light"] {
     --bg: #f4f6f8; --surface: #ffffff; --surface-alt: #f8fafc; --border: #e2e8f0;
     --text: #1e293b; --text-soft: #64748b; --text-faint: #94a3b8;
-    --brand: #2563eb; --brand-hover: #1d4ed8; --brand-soft: #eff6ff;
+    --brand: #ff4e20; --brand-hover: #e0431a; --brand-soft: #fff1ec;
     --danger: #dc2626; --danger-soft: #fef2f2;
     --shadow: 0 20px 45px -18px rgba(30, 41, 59, 0.35); --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.06);
     --b-news: #6366f1; --b-case: #2563eb; --b-industry: #0891b2; --b-bts: #475569; --b-promo: #b45309;
     --s-draft-fg: #64748b; --s-draft-bg: #f1f5f9; --s-draft-line: #cbd5e1;
     --s-approved-fg: #15803d; --s-approved-bg: #f0fdf4; --s-approved-line: #bbf7d0;
-    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #2563eb; --s-scheduled-line: #2563eb;
-    --good: #15803d; --bad: #dc2626; --chart-fill-soft: #dbeafe;
+    --s-scheduled-fg: #ffffff; --s-scheduled-bg: #ff4e20; --s-scheduled-line: #ff4e20;
+    --good: #15803d; --bad: #dc2626;
   }
 
   * { box-sizing: border-box; }
@@ -364,18 +362,18 @@
   .chart-head h3 { margin: 0; font-size: 0.92rem; font-weight: 700; }
   .chart-body { position: relative; }
   .chart-body svg { display: block; width: 100%; height: auto; overflow: visible; }
-  .chart-gridline { stroke: var(--border); stroke-width: 1; }
-  .chart-baseline { stroke: var(--text-faint); stroke-width: 1; }
+  .chart-gridline { stroke: var(--border); stroke-width: 0.75; }
+  .chart-baseline { stroke: var(--border); stroke-width: 1; }
   .chart-axis-label { fill: var(--text-faint); font-size: 9px; font-family: var(--font-mono); }
-  .chart-line { fill: none; stroke: var(--brand); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .chart-area { fill: var(--chart-fill-soft); opacity: 0.7; }
+  .chart-line { fill: none; stroke: var(--brand); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-area { stroke: none; }
   .chart-end-label { fill: var(--text); font-size: 11px; font-weight: 700; }
   .chart-bar { fill: var(--brand); }
   .chart-hbar-track { fill: var(--surface-alt); }
   .chart-hbar-label { fill: var(--text-soft); font-size: 10px; }
   .chart-hbar-value { fill: var(--text); font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .chart-crosshair { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
-  .chart-dot { fill: var(--surface); stroke: var(--brand); stroke-width: 2; pointer-events: none; }
+  .chart-crosshair { stroke: var(--text-faint); stroke-width: 0.75; stroke-dasharray: 3 3; pointer-events: none; }
+  .chart-dot { fill: var(--surface); stroke: var(--brand); stroke-width: 1.5; pointer-events: none; }
   .chart-tooltip {
     position: absolute; pointer-events: none; z-index: 5;
     background: var(--text); color: var(--surface);
@@ -1837,6 +1835,25 @@
   };
   var currentMetric = "impressions";
 
+  function smoothPath(points) {
+    if (points.length < 3) {
+      return "M " + points.map(function (p) { return p[0] + "," + p[1]; }).join(" L ");
+    }
+    var d = "M " + points[0][0] + "," + points[0][1] + " ";
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i - 1] || points[i];
+      var p1 = points[i];
+      var p2 = points[i + 1];
+      var p3 = points[i + 2] || p2;
+      var c1x = p1[0] + (p2[0] - p0[0]) / 6;
+      var c1y = p1[1] + (p2[1] - p0[1]) / 6;
+      var c2x = p2[0] - (p3[0] - p1[0]) / 6;
+      var c2y = p2[1] - (p3[1] - p1[1]) / 6;
+      d += "C " + c1x + "," + c1y + " " + c2x + "," + c2y + " " + p2[0] + "," + p2[1] + " ";
+    }
+    return d.trim();
+  }
+
   function renderTrendChart(periods, metricKey) {
     var def = METRIC_DEFS[metricKey];
     var el = document.getElementById("trendChart");
@@ -1851,8 +1868,8 @@
     function xAt(i) { return padL + (periods.length === 1 ? 0 : (i / (periods.length - 1)) * innerW); }
     function yAt(v) { return padT + innerH - ((v - min) / (max - min)) * innerH; }
 
-    var linePts = periods.map(function (w, i) { return xAt(i) + "," + yAt(w[metricKey]); }).join(" L ");
-    var lineD = "M " + linePts;
+    var pts = periods.map(function (w, i) { return [xAt(i), yAt(w[metricKey])]; });
+    var lineD = smoothPath(pts);
     var areaD = lineD + " L " + xAt(periods.length - 1) + "," + (padT + innerH) + " L " + xAt(0) + "," + (padT + innerH) + " Z";
 
     var gridLines = "";
@@ -1866,11 +1883,15 @@
 
     el.innerHTML =
       '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="' + def.label + ' over time">' +
+      '<defs><linearGradient id="trendAreaFill" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" style="stop-color: var(--brand); stop-opacity: 0.28"></stop>' +
+      '<stop offset="100%" style="stop-color: var(--brand); stop-opacity: 0"></stop>' +
+      '</linearGradient></defs>' +
       gridLines +
       '<line class="chart-baseline" x1="' + padL + '" y1="' + (padT + innerH) + '" x2="' + (W - padR) + '" y2="' + (padT + innerH) + '"></line>' +
-      '<path class="chart-area" d="' + areaD + '"></path>' +
+      '<path class="chart-area" d="' + areaD + '" fill="url(#trendAreaFill)"></path>' +
       '<path class="chart-line" d="' + lineD + '"></path>' +
-      '<circle class="chart-dot" cx="' + lastX + '" cy="' + lastY + '" r="4"></circle>' +
+      '<circle class="chart-dot" cx="' + lastX + '" cy="' + lastY + '" r="3.5"></circle>' +
       '<text class="chart-end-label" x="' + (lastX - 6) + '" y="' + (lastY - 10) + '" text-anchor="end">' + def.format(lastVal) + '</text>' +
       '<line class="chart-crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + innerH) + '" style="display:none"></line>' +
       '<circle class="chart-dot" r="4" style="display:none"></circle>' +
