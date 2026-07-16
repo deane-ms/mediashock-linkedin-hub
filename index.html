@@ -333,7 +333,7 @@
   .demo-row .demo-value { text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
 
   /* ---------- KPI tiles ---------- */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; margin-bottom: 1.4rem; }
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.8rem; margin-bottom: 1.4rem; }
   .kpi-tile { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: var(--shadow-sm); }
   .kpi-label { font-size: 0.72rem; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.04em; }
   .kpi-value { font-size: 1.7rem; font-weight: 700; margin-top: 0.3rem; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -400,6 +400,9 @@
   #analyticsTable th:first-child, #analyticsTable td:first-child, #topPostsTable th:first-child, #topPostsTable td:first-child { text-align: left; font-variant-numeric: normal; }
   #analyticsTable th, #topPostsTable th { color: var(--text-soft); font-weight: 700; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
 
+  @media (max-width: 980px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  }
   @media (max-width: 720px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
   }
