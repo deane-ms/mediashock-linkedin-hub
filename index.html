@@ -134,7 +134,23 @@
   .brand h1 { font-size: 1.25rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
   .brand p { margin: 0.1rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
 
-  .topbar-actions { display: flex; gap: 0.6rem; }
+  .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
+  .user-chip { font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
+
+  /* ---------- auth gate ---------- */
+  .auth-gate {
+    position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem; z-index: 100;
+  }
+  .auth-card {
+    max-width: 26rem; width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 2rem 1.8rem; text-align: center; box-shadow: var(--shadow);
+  }
+  .auth-card .logo-mark { margin: 0 auto 1rem; }
+  .auth-card h2 { margin: 0 0 0.6rem; font-size: 1.15rem; }
+  .auth-card p { margin: 0 0 1.2rem; font-size: 0.88rem; color: var(--text-soft); line-height: 1.5; }
+  .auth-card .btn-primary { width: 100%; justify-content: center; }
+  .auth-denied { color: var(--danger); }
 
   .btn {
     display: inline-flex; align-items: center; gap: 0.4rem;
@@ -550,7 +566,20 @@
 </head>
 <body>
 
-<div class="app">
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <span class="logo-mark">MS</span>
+    <h2>MediaShock APAC — LinkedIn Content Hub</h2>
+    <p id="authStatus">Sign in with your Mediashock Google account to continue.</p>
+    <button type="button" class="btn btn-primary" id="signInBtn">Sign in with Google</button>
+    <p class="auth-denied" id="authDenied" hidden>
+      This tool is restricted to <strong>@mediashock.com.sg</strong> accounts.<br>
+      <button type="button" class="btn btn-ghost small" id="authSignOutBtn" style="margin-top:0.6rem;">Sign out and try another account</button>
+    </p>
+  </div>
+</div>
+
+<div class="app" id="appRoot" hidden>
   <header class="topbar">
     <div class="brand">
       <span class="logo-mark">MS</span>
@@ -560,9 +589,11 @@
       </div>
     </div>
     <div class="topbar-actions">
+      <span class="user-chip" id="userChip" hidden></span>
       <button class="btn btn-ghost" id="importBtn">Import JSON</button>
       <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
       <button class="btn btn-primary" id="newPostBtn">+ New Post</button>
+      <button class="btn btn-ghost" id="signOutBtn" hidden>Sign out</button>
     </div>
   </header>
 
@@ -976,12 +1007,193 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, connectAuthEmulator
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, arrayUnion,
+  connectFirestoreEmulator
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 (function () {
   "use strict";
 
-  var STORAGE_KEY = "mediashock-linkedin-calendar-v1";
-  var BUCKETS_KEY = "mediashock-linkedin-buckets-v1";
+  // ---------- Firebase setup ----------
+  // Replace with YOUR project's config: Firebase Console -> Project settings -> Your apps -> Web app.
+  // These values are meant to be public in client code -- access control is enforced by the
+  // Firestore security rules (firestore.rules), not by hiding this config.
+  var firebaseConfig = {
+    apiKey: "AIzaSyAAgAuuFCMRPxPkbMeBDelO-A6prpZENow",
+    authDomain: "mediashock-content-hub-2237f.firebaseapp.com",
+    projectId: "mediashock-content-hub-2237f",
+    appId: "1:455294846384:web:5cab35924dd7a95da9c275"
+  };
+  var ALLOWED_EMAIL_DOMAIN = "mediashock.com.sg";
+  var USE_EMULATORS = ["localhost", "127.0.0.1"].indexOf(location.hostname) > -1;
+
+  var fbApp = initializeApp(USE_EMULATORS
+    ? {
+        projectId: "demo-mediashock-hub", apiKey: "demo-key",
+        authDomain: "demo-mediashock-hub.firebaseapp.com"
+      }
+    : firebaseConfig);
+  var auth = getAuth(fbApp);
+  var db = getFirestore(fbApp);
+  if (USE_EMULATORS) {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  }
+
+  var postsCol = collection(db, "posts");
+  var bucketsCol = collection(db, "buckets");
+  var ideasCol = collection(db, "ideas");
+  var analyticsDocRef = doc(db, "analytics", "current");
+
+  var googleProvider = new GoogleAuthProvider();
+  googleProvider.setCustomParameters({ hd: ALLOWED_EMAIL_DOMAIN });
+
+  function isAllowedEmail(email) {
+    return !!email && email.toLowerCase().endsWith("@" + ALLOWED_EMAIL_DOMAIN);
+  }
+
+  var authGate = document.getElementById("authGate");
+  var authStatus = document.getElementById("authStatus");
+  var authDenied = document.getElementById("authDenied");
+  var appRoot = document.getElementById("appRoot");
+  var signInBtn = document.getElementById("signInBtn");
+  var authSignOutBtn = document.getElementById("authSignOutBtn");
+  var topbarSignOutBtn = document.getElementById("signOutBtn");
+  var userChip = document.getElementById("userChip");
+
+  signInBtn.addEventListener("click", function () {
+    signInBtn.disabled = true;
+    authStatus.textContent = "Opening Google sign-in...";
+    signInWithPopup(auth, googleProvider).catch(function (err) {
+      authStatus.textContent = "Sign-in failed: " + err.message;
+      signInBtn.disabled = false;
+    });
+  });
+  function doSignOut() { signOut(auth); }
+  authSignOutBtn.addEventListener("click", doSignOut);
+  topbarSignOutBtn.addEventListener("click", doSignOut);
+
+  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null;
+  var ideasSeeded = false, postsSeeded = false;
+
+  function startListeners() {
+    if (unsubPosts) return;
+
+    unsubPosts = onSnapshot(postsCol, function (snap) {
+      if (snap.empty && !postsSeeded) {
+        postsSeeded = true;
+        var postBatch = writeBatch(db);
+        SEED_POSTS.forEach(function (post) {
+          var copy = Object.assign({}, post);
+          delete copy.id;
+          postBatch.set(doc(postsCol, post.id), copy);
+        });
+        postBatch.commit().catch(function (e) { console.error("Failed to seed posts", e); });
+        return;
+      }
+      posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      render();
+    }, function (err) { console.error("posts listener error", err); });
+
+    unsubBuckets = onSnapshot(bucketsCol, function (snap) {
+      if (snap.empty) {
+        var seedBatch = writeBatch(db);
+        DEFAULT_BUCKETS.forEach(function (b, i) {
+          seedBatch.set(doc(bucketsCol, b.key), { label: b.label, color: b.color, order: i });
+        });
+        seedBatch.commit().catch(function (e) { console.error("Failed to seed buckets", e); });
+        return;
+      }
+      buckets = snap.docs
+        .map(function (d) { return Object.assign({ key: d.id }, d.data()); })
+        .sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      renderLegend();
+      render();
+      renderKanbanBoard();
+      if (bucketsBackdrop.classList.contains("open")) renderBucketsList();
+    }, function (err) { console.error("buckets listener error", err); });
+
+    unsubIdeas = onSnapshot(ideasCol, function (snap) {
+      if (snap.empty && !ideasSeeded) {
+        ideasSeeded = true;
+        var ideaBatch = writeBatch(db);
+        SEED_IDEAS.forEach(function (idea) {
+          var copy = Object.assign({}, idea);
+          delete copy.id;
+          ideaBatch.set(doc(ideasCol, idea.id), copy);
+        });
+        ideaBatch.commit().catch(function (e) { console.error("Failed to seed ideas", e); });
+        return;
+      }
+      ideas = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderKanbanBoard();
+      if (ideaBackdrop.classList.contains("open") && editingIdeaId) {
+        var openIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
+        if (openIdea) renderFeedbackLog(openIdea.feedback);
+      }
+    }, function (err) { console.error("ideas listener error", err); });
+
+    unsubAnalytics = onSnapshot(analyticsDocRef, function (snap) {
+      if (!snap.exists()) {
+        var seeded = buildDefaultAnalyticsData();
+        analyticsDataCache = seeded;
+        lastWrittenAnalyticsDataJson = JSON.stringify(seeded);
+        setDoc(analyticsDocRef, seeded).catch(function (e) { console.error("Failed to seed analytics", e); });
+        renderAnalytics();
+        return;
+      }
+      analyticsDataCache = snap.data();
+      lastWrittenAnalyticsDataJson = JSON.stringify(analyticsDataCache);
+      renderAnalytics();
+    }, function (err) { console.error("analytics listener error", err); });
+  }
+
+  function stopListeners() {
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = null;
+  }
+
+  onAuthStateChanged(auth, function (user) {
+    signInBtn.disabled = false;
+    signInBtn.hidden = false;
+    authStatus.hidden = false;
+    authDenied.hidden = true;
+
+    if (!user) {
+      stopListeners();
+      appRoot.hidden = true;
+      authGate.hidden = false;
+      userChip.hidden = true;
+      topbarSignOutBtn.hidden = true;
+      authStatus.textContent = "Sign in with your Mediashock Google account to continue.";
+      return;
+    }
+    if (!isAllowedEmail(user.email)) {
+      stopListeners();
+      appRoot.hidden = true;
+      authGate.hidden = false;
+      authStatus.hidden = true;
+      signInBtn.hidden = true;
+      authDenied.hidden = false;
+      userChip.hidden = true;
+      topbarSignOutBtn.hidden = true;
+      return;
+    }
+
+    authGate.hidden = true;
+    appRoot.hidden = false;
+    userChip.hidden = false;
+    userChip.textContent = user.email;
+    topbarSignOutBtn.hidden = false;
+    startListeners();
+  });
+
   var DEFAULT_BUCKETS = [
     { key: "news", label: "Company News & Culture", color: "#6366f1" },
     { key: "case", label: "Client Success & Case Studies", color: "#2563eb" },
@@ -991,17 +1203,7 @@
   ];
   var PALETTE_ROTATION = ["#6366f1", "#2563eb", "#0891b2", "#475569", "#b45309", "#7c3aed", "#059669", "#dc2626", "#0d9488", "#c026d3", "#65a30d", "#ea580c"];
 
-  function loadBuckets() {
-    try {
-      var raw = localStorage.getItem(BUCKETS_KEY);
-      if (!raw) { saveBuckets(DEFAULT_BUCKETS); return DEFAULT_BUCKETS.slice(); }
-      var parsed = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.length ? parsed : DEFAULT_BUCKETS.slice();
-    } catch (e) { return DEFAULT_BUCKETS.slice(); }
-  }
-  function saveBuckets(list) { localStorage.setItem(BUCKETS_KEY, JSON.stringify(list)); }
-
-  var buckets = loadBuckets();
+  var buckets = DEFAULT_BUCKETS.slice();
 
   function bucketByKey(key) { return buckets.find(function (b) { return b.key === key; }); }
   function bucketColorFor(key) { var b = bucketByKey(key); return b ? b.color : "#94a3b8"; }
@@ -1046,25 +1248,7 @@
     }
   ];
 
-  // ---------- storage ----------
-  function loadPosts() {
-    try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_POSTS));
-        return SEED_POSTS.slice();
-      }
-      return JSON.parse(raw);
-    } catch (e) {
-      return SEED_POSTS.slice();
-    }
-  }
-  function savePosts() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-  }
-
   // ---------- content planner ----------
-  var PLANNER_KEY = "mediashock-linkedin-planner-v1";
   var IDEA_STAGES = [
     { key: "idea", label: "New Idea" },
     { key: "review", label: "In Review" },
@@ -1097,24 +1281,8 @@
     }
   ];
 
-  function loadIdeas() {
-    try {
-      var raw = localStorage.getItem(PLANNER_KEY);
-      if (!raw) {
-        localStorage.setItem(PLANNER_KEY, JSON.stringify(SEED_IDEAS));
-        return SEED_IDEAS.slice();
-      }
-      return JSON.parse(raw);
-    } catch (e) {
-      return SEED_IDEAS.slice();
-    }
-  }
-  function saveIdeas() {
-    localStorage.setItem(PLANNER_KEY, JSON.stringify(ideas));
-  }
-
-  var posts = loadPosts();
-  var ideas = loadIdeas();
+  var posts = [];
+  var ideas = [];
   var editingIdeaId = null;
   var view = "month";
   var cursor = new Date(); cursor.setHours(0, 0, 0, 0);
@@ -1520,29 +1688,49 @@
   document.getElementById("cancelBtn").addEventListener("click", closeModal);
   modalBackdrop.addEventListener("click", function (e) { if (e.target === modalBackdrop) closeModal(); });
 
+  // Firestore documents have a hard 1MiB limit. Images are stored inline as base64, so a post
+  // with several large photos could exceed that -- fail loudly and early instead of letting
+  // Firestore reject the write with a cryptic error after the user has already closed the modal.
+  var MAX_IMAGES_BYTES = 900000; // leaves headroom under the 1MiB doc limit for the other fields
+
+  function estimateImagesBytes(images) {
+    return images.reduce(function (sum, img) { return sum + (img ? img.length : 0); }, 0);
+  }
+
   postForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    var data = {
-      title: fTitle.value.trim(),
+    var title = fTitle.value.trim();
+    var date = fDate.value;
+    if (!title || !date) return;
+
+    var images = currentImages.slice();
+    if (estimateImagesBytes(images) > MAX_IMAGES_BYTES) {
+      alert("These images are too large to save together (Firestore's 1MB-per-post limit) -- " +
+        "remove a photo or two, or use smaller/fewer images, then try again.");
+      return;
+    }
+
+    var postId = editingId || ("post-" + Date.now() + "-" + Math.floor(Math.random() * 1000));
+    var submitBtn = postForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Saving...";
+
+    setDoc(doc(postsCol, postId), {
+      title: title,
       bucket: fBucket.value,
       status: fStatus.value,
-      date: fDate.value,
+      date: date,
       time: fTime.value || "09:00",
       copy: fCopy.value,
-      images: currentImages.slice()
-    };
-    if (!data.title || !data.date) return;
-
-    if (editingId) {
-      var idx = posts.findIndex(function (p) { return p.id === editingId; });
-      if (idx > -1) posts[idx] = Object.assign({}, posts[idx], data);
-    } else {
-      data.id = "post-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
-      posts.push(data);
-    }
-    savePosts();
-    closeModal();
-    render();
+      images: images
+    }).then(function () {
+      closeModal();
+    }).catch(function (err) {
+      alert("Couldn't save this post: " + err.message);
+    }).finally(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Save Post";
+    });
   });
 
   deleteBtn.addEventListener("click", function () {
@@ -1553,10 +1741,11 @@
       deleteBtn.classList.add("btn-primary");
       return;
     }
-    posts = posts.filter(function (p) { return p.id !== editingId; });
-    savePosts();
-    closeModal();
-    render();
+    deleteDoc(doc(postsCol, editingId)).then(function () {
+      closeModal();
+    }).catch(function (err) {
+      alert("Couldn't delete this post: " + err.message);
+    });
   });
 
   // ---------- content planner ----------
@@ -1681,39 +1870,38 @@
 
   ideaForm.addEventListener("submit", function (e) {
     e.preventDefault();
+    var title = iTitle.value.trim();
+    if (!title) return;
     var data = {
-      title: iTitle.value.trim(),
+      title: title,
       bucket: iBucket.value,
       notes: iNotes.value,
       stage: iStage.value
     };
-    if (!data.title) return;
 
-    if (editingIdeaId) {
-      var idx = ideas.findIndex(function (i) { return i.id === editingIdeaId; });
-      if (idx > -1) ideas[idx] = Object.assign({}, ideas[idx], data);
-    } else {
-      data.id = "idea-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+    var ideaId = editingIdeaId;
+    if (!ideaId) {
+      ideaId = "idea-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
       data.createdAt = new Date().toISOString();
       data.feedback = [];
-      ideas.push(data);
     }
-    saveIdeas();
-    closeIdeaModal();
-    renderKanbanBoard();
+    setDoc(doc(ideasCol, ideaId), data, { merge: true }).then(function () {
+      closeIdeaModal();
+    }).catch(function (err) {
+      alert("Couldn't save this idea: " + err.message);
+    });
   });
 
   addFeedbackBtn.addEventListener("click", function () {
     var text = iFeedbackInput.value.trim();
     if (!text || !editingIdeaId) return;
-    var idea = ideas.find(function (i) { return i.id === editingIdeaId; });
-    if (!idea) return;
-    idea.feedback = idea.feedback || [];
-    idea.feedback.push({ text: text, date: new Date().toISOString() });
-    saveIdeas();
-    renderFeedbackLog(idea.feedback);
-    renderKanbanBoard();
-    iFeedbackInput.value = "";
+    updateDoc(doc(ideasCol, editingIdeaId), {
+      feedback: arrayUnion({ text: text, date: new Date().toISOString() })
+    }).then(function () {
+      iFeedbackInput.value = "";
+    }).catch(function (err) {
+      alert("Couldn't add feedback: " + err.message);
+    });
   });
 
   deleteIdeaBtn.addEventListener("click", function () {
@@ -1724,10 +1912,11 @@
       deleteIdeaBtn.classList.add("btn-primary");
       return;
     }
-    ideas = ideas.filter(function (i) { return i.id !== editingIdeaId; });
-    saveIdeas();
-    closeIdeaModal();
-    renderKanbanBoard();
+    deleteDoc(doc(ideasCol, editingIdeaId)).then(function () {
+      closeIdeaModal();
+    }).catch(function (err) {
+      alert("Couldn't delete this idea: " + err.message);
+    });
   });
 
   sendToCalendarBtn.addEventListener("click", function () {
@@ -1795,23 +1984,23 @@
 
   document.getElementById("addBucketBtn").addEventListener("click", function () {
     var label = "New bucket " + (buckets.length + 1);
-    buckets.push({ key: slugifyBucket(label), label: label, color: nextPaletteColor() });
-    saveBuckets(buckets);
-    renderBucketsList();
+    var key = slugifyBucket(label);
+    setDoc(doc(bucketsCol, key), { label: label, color: nextPaletteColor(), order: buckets.length })
+      .catch(function (err) { alert("Couldn't add bucket: " + err.message); });
   });
 
-  bucketsList.addEventListener("input", function (e) {
+  bucketsList.addEventListener("change", function (e) {
     var row = e.target.closest(".bucket-row");
     if (!row) return;
     var key = row.dataset.key;
-    var b = bucketByKey(key);
-    if (!b) return;
     if (e.target.classList.contains("bucket-color")) {
-      b.color = e.target.value;
-      saveBuckets(buckets);
+      updateDoc(doc(bucketsCol, key), { color: e.target.value })
+        .catch(function (err) { alert("Couldn't update color: " + err.message); });
     } else if (e.target.classList.contains("bucket-label")) {
-      b.label = e.target.value.trim() || b.label;
-      saveBuckets(buckets);
+      var label = e.target.value.trim();
+      if (!label) { e.target.value = bucketLabelFor(key); return; }
+      updateDoc(doc(bucketsCol, key), { label: label })
+        .catch(function (err) { alert("Couldn't rename bucket: " + err.message); });
     }
   });
 
@@ -1834,15 +2023,12 @@
 
     var remaining = buckets.filter(function (b) { return b.key !== key; });
     var fallbackKey = remaining[0].key;
-    var reassigned = 0;
+    var batch = writeBatch(db);
     posts.forEach(function (p) {
-      if (p.bucket === key) { p.bucket = fallbackKey; reassigned++; }
+      if (p.bucket === key) batch.update(doc(postsCol, p.id), { bucket: fallbackKey });
     });
-    buckets = remaining;
-    saveBuckets(buckets);
-    savePosts();
-    renderBucketsList();
-    render();
+    batch.delete(doc(bucketsCol, key));
+    batch.commit().catch(function (err) { alert("Couldn't delete bucket: " + err.message); });
   });
 
   // ---------- calendar: export ----------
@@ -1966,11 +2152,13 @@
       return;
     }
 
+    var batch = writeBatch(db);
     var bucketsReplaced = false;
     if (incomingBuckets) {
-      buckets = incomingBuckets;
-      saveBuckets(buckets);
-      renderLegend();
+      buckets.forEach(function (b) { batch.delete(doc(bucketsCol, b.key)); });
+      incomingBuckets.forEach(function (b, i) {
+        batch.set(doc(bucketsCol, b.key), { label: b.label, color: b.color, order: i });
+      });
       bucketsReplaced = true;
     }
 
@@ -1978,18 +2166,23 @@
     incomingPosts.forEach(function (raw, i) {
       var item = normalizeImported(raw, i);
       if (!item) { skipped++; return; }
-      var existingIdx = posts.findIndex(function (p) { return p.id === item.id; });
-      if (existingIdx > -1) { posts[existingIdx] = item; updated++; }
-      else { posts.push(item); added++; }
+      var exists = posts.some(function (p) { return p.id === item.id; });
+      if (exists) updated++; else added++;
+      var itemData = Object.assign({}, item);
+      delete itemData.id;
+      batch.set(doc(postsCol, item.id), itemData);
     });
 
-    savePosts();
-    render();
-    importError.style.color = "var(--s-approved-fg)";
-    importError.textContent = "Imported: " + added + " added, " + updated + " updated" +
-      (skipped ? ", " + skipped + " skipped (missing a date)" : "") +
-      (bucketsReplaced ? "; buckets replaced with the imported set" : "") + ".";
-    importError.style.display = "block";
+    batch.commit().then(function () {
+      importError.style.color = "var(--s-approved-fg)";
+      importError.textContent = "Imported: " + added + " added, " + updated + " updated" +
+        (skipped ? ", " + skipped + " skipped (missing a date)" : "") +
+        (bucketsReplaced ? "; buckets replaced with the imported set" : "") + ".";
+      importError.style.display = "block";
+    }).catch(function (err) {
+      importError.textContent = "Import failed: " + err.message;
+      importError.style.display = "block";
+    });
   });
 
 
@@ -2080,32 +2273,61 @@
     "Company size": [{ category: "11-50", count: 82 }, { category: "2-10", count: 71 }, { category: "51-200", count: 44 }]
   };
 
-  function loadAnalytics() {
+  // Analytics DATA (days/topPosts/demographics/follower count) is shared across the whole team via
+  // Firestore -- kept in analyticsDataCache, fed by the analytics onSnapshot listener set up earlier.
+  // Analytics VIEW state (which date range/granularity you're looking at) stays local per-browser,
+  // like a personal preference, so one person changing it doesn't change what everyone else sees.
+  var analyticsDataCache = null;
+  var lastWrittenAnalyticsDataJson = null;
+
+  function buildDefaultAnalyticsData() {
+    return {
+      isSample: true, currentFollowers: null, currentFollowersSource: null,
+      days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS
+    };
+  }
+
+  function loadAnalyticsViewState() {
     try {
       var raw = localStorage.getItem(ANALYTICS_KEY);
-      if (!raw) {
-        var seeded = {
-          isSample: true, currentFollowers: null, currentFollowersSource: null,
-          days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS,
-          rangePreset: "90d", rangeStart: null, rangeEnd: null, granularity: "week"
+      if (raw) {
+        var v = JSON.parse(raw);
+        return {
+          rangePreset: v.rangePreset || "90d", rangeStart: v.rangeStart || null,
+          rangeEnd: v.rangeEnd || null, granularity: v.granularity || "week"
         };
-        localStorage.setItem(ANALYTICS_KEY, JSON.stringify(seeded));
-        return seeded;
       }
-      var state = JSON.parse(raw);
-      if (!state.rangePreset) state.rangePreset = "90d";
-      if (!state.granularity) state.granularity = "week";
-      return state;
-    } catch (e) {
-      return {
-        isSample: true, currentFollowers: null, currentFollowersSource: null,
-        days: buildSampleDays(), topPosts: SAMPLE_TOP_POSTS, followerDemographics: SAMPLE_DEMOGRAPHICS,
-        rangePreset: "90d", rangeStart: null, rangeEnd: null, granularity: "week"
-      };
-    }
+    } catch (e) { /* fall through to defaults */ }
+    return { rangePreset: "90d", rangeStart: null, rangeEnd: null, granularity: "week" };
   }
+
+  function loadAnalytics() {
+    var data = analyticsDataCache || buildDefaultAnalyticsData();
+    var view = loadAnalyticsViewState();
+    return Object.assign({}, data, view);
+  }
+
   function saveAnalytics(state) {
-    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(state));
+    var view = {
+      rangePreset: state.rangePreset, rangeStart: state.rangeStart,
+      rangeEnd: state.rangeEnd, granularity: state.granularity
+    };
+    localStorage.setItem(ANALYTICS_KEY, JSON.stringify(view));
+
+    var data = {
+      isSample: !!state.isSample,
+      currentFollowers: state.currentFollowers !== undefined ? state.currentFollowers : null,
+      currentFollowersSource: state.currentFollowersSource || null,
+      days: state.days || [],
+      topPosts: state.topPosts || [],
+      followerDemographics: state.followerDemographics || {}
+    };
+    var dataJson = JSON.stringify(data);
+    if (dataJson !== lastWrittenAnalyticsDataJson) {
+      lastWrittenAnalyticsDataJson = dataJson;
+      analyticsDataCache = data;
+      setDoc(analyticsDocRef, data).catch(function (err) { console.error("Failed to save analytics", err); });
+    }
   }
 
   // ---------- analytics: date range + aggregation ----------
