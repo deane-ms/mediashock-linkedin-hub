@@ -1006,9 +1006,6 @@ import {
   getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, arrayUnion,
   connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getStorage, ref as fbStorageRef, uploadString, getDownloadURL, deleteObject, connectStorageEmulator
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 (function () {
   "use strict";
@@ -1016,13 +1013,12 @@ import {
   // ---------- Firebase setup ----------
   // Replace with YOUR project's config: Firebase Console -> Project settings -> Your apps -> Web app.
   // These values are meant to be public in client code -- access control is enforced by the
-  // Firestore/Storage security rules (firestore.rules / storage.rules), not by hiding this config.
+  // Firestore security rules (firestore.rules), not by hiding this config.
   var firebaseConfig = {
-    apiKey: "REPLACE_ME",
-    authDomain: "REPLACE_ME.firebaseapp.com",
-    projectId: "REPLACE_ME",
-    storageBucket: "REPLACE_ME.appspot.com",
-    appId: "REPLACE_ME"
+    apiKey: "AIzaSyAAgAuuFCMRPxPkbMeBDelO-A6prpZENow",
+    authDomain: "mediashock-content-hub-2237f.firebaseapp.com",
+    projectId: "mediashock-content-hub-2237f",
+    appId: "1:455294846384:web:5cab35924dd7a95da9c275"
   };
   var ALLOWED_EMAIL_DOMAIN = "mediashock.com.sg";
   var USE_EMULATORS = ["localhost", "127.0.0.1"].indexOf(location.hostname) > -1;
@@ -1030,17 +1026,14 @@ import {
   var fbApp = initializeApp(USE_EMULATORS
     ? {
         projectId: "demo-mediashock-hub", apiKey: "demo-key",
-        authDomain: "demo-mediashock-hub.firebaseapp.com",
-        storageBucket: "demo-mediashock-hub.appspot.com"
+        authDomain: "demo-mediashock-hub.firebaseapp.com"
       }
     : firebaseConfig);
   var auth = getAuth(fbApp);
   var db = getFirestore(fbApp);
-  var storage = getStorage(fbApp);
   if (USE_EMULATORS) {
     connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
     connectFirestoreEmulator(db, "127.0.0.1", 8080);
-    connectStorageEmulator(storage, "127.0.0.1", 9199);
   }
 
   var postsCol = collection(db, "posts");
@@ -1685,14 +1678,13 @@ import {
   document.getElementById("cancelBtn").addEventListener("click", closeModal);
   modalBackdrop.addEventListener("click", function (e) { if (e.target === modalBackdrop) closeModal(); });
 
-  function isDataUri(s) { return typeof s === "string" && s.indexOf("data:") === 0; }
+  // Firestore documents have a hard 1MiB limit. Images are stored inline as base64, so a post
+  // with several large photos could exceed that -- fail loudly and early instead of letting
+  // Firestore reject the write with a cryptic error after the user has already closed the modal.
+  var MAX_IMAGES_BYTES = 900000; // leaves headroom under the 1MiB doc limit for the other fields
 
-  function uploadPostImages(postId, images) {
-    return Promise.all(images.map(function (img, i) {
-      if (!isDataUri(img)) return Promise.resolve(img); // already a Storage URL from a previous save
-      var ref = fbStorageRef(storage, "post-images/" + postId + "/" + Date.now() + "-" + i + ".jpg");
-      return uploadString(ref, img, "data_url").then(function () { return getDownloadURL(ref); });
-    }));
+  function estimateImagesBytes(images) {
+    return images.reduce(function (sum, img) { return sum + (img ? img.length : 0); }, 0);
   }
 
   postForm.addEventListener("submit", function (e) {
@@ -1701,21 +1693,26 @@ import {
     var date = fDate.value;
     if (!title || !date) return;
 
+    var images = currentImages.slice();
+    if (estimateImagesBytes(images) > MAX_IMAGES_BYTES) {
+      alert("These images are too large to save together (Firestore's 1MB-per-post limit) -- " +
+        "remove a photo or two, or use smaller/fewer images, then try again.");
+      return;
+    }
+
     var postId = editingId || ("post-" + Date.now() + "-" + Math.floor(Math.random() * 1000));
     var submitBtn = postForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = "Saving...";
 
-    uploadPostImages(postId, currentImages.slice()).then(function (imageUrls) {
-      return setDoc(doc(postsCol, postId), {
-        title: title,
-        bucket: fBucket.value,
-        status: fStatus.value,
-        date: date,
-        time: fTime.value || "09:00",
-        copy: fCopy.value,
-        images: imageUrls
-      });
+    setDoc(doc(postsCol, postId), {
+      title: title,
+      bucket: fBucket.value,
+      status: fStatus.value,
+      date: date,
+      time: fTime.value || "09:00",
+      copy: fCopy.value,
+      images: images
     }).then(function () {
       closeModal();
     }).catch(function (err) {
@@ -1734,17 +1731,8 @@ import {
       deleteBtn.classList.add("btn-primary");
       return;
     }
-    var post = posts.find(function (p) { return p.id === editingId; });
     deleteDoc(doc(postsCol, editingId)).then(function () {
       closeModal();
-      if (post && Array.isArray(post.images)) {
-        post.images.forEach(function (url) {
-          try {
-            var path = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
-            deleteObject(fbStorageRef(storage, path)).catch(function () {});
-          } catch (e) {}
-        });
-      }
     }).catch(function (err) {
       alert("Couldn't delete this post: " + err.message);
     });

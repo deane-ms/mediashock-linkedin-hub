@@ -19,8 +19,14 @@ project needed for this part):
 - Live sync verified across two independent signed-in sessions: calendar posts, planner
   ideas + feedback, and content buckets all propagate to other open sessions without a
   refresh
-- Post images upload to Firebase Storage (not embedded as base64) — avoids the real risk
-  of image-heavy posts blowing past Firestore's 1MiB per-document limit
+- Post images are stored as base64 directly on the post document (no Firebase Storage --
+  new Firebase projects require the paid Blaze plan for Storage, and we opted to skip
+  that rather than add billing). A size guard blocks saving before Firestore's 1MiB
+  per-document limit is hit, with a clear error telling the user to remove/shrink images,
+  instead of a cryptic failure after the fact. In practice this means posts work fine with
+  a handful of normal-sized photos; a post stuffed with many large images may need to trim
+  some down. Confirmed against the emulator's admin data view that a saved post's `images`
+  field really does hold `data:image/jpeg;base64,...` inline, with no Storage involved.
 
 ## Data model
 
@@ -31,21 +37,25 @@ project needed for this part):
   Date-range and granularity view preferences stay in each browser's `localStorage`, not Firestore,
   so one person changing their view doesn't change what everyone else sees.
 
+## Status: real Firebase project created
+
+Project `mediashock-content-hub-2237f` exists (Spark/free plan) and `firebaseConfig` in
+`content-hub-firebase.html` and the project ID in `.firebaserc` are already filled in with
+real values. Firebase Storage was deliberately skipped -- as of late 2024, new Firebase
+projects require upgrading to the paid Blaze plan to use Storage at all (even within the
+free-tier quota), and we chose the base64-in-Firestore fallback above instead of adding
+billing.
+
 ## What's left to ship this for real
 
-1. Create the real Firebase project (Firestore + Authentication with Google provider + Storage,
-   all in production mode) — see the setup steps already given in chat, or ask Claude to recap them.
-2. Register a Web App in that project and get its `firebaseConfig` object.
-3. In `content-hub-firebase.html`, find the block that starts with `var firebaseConfig = {` (search
-   for `REPLACE_ME`) and paste in the real values.
-4. Update `.firebaserc` in this folder to the real project ID (currently `demo-mediashock-hub`,
-   which only exists for local emulator testing).
-5. Publish `firestore.rules` and `storage.rules` (copy-paste into the Firebase Console's Rules tabs,
-   or `firebase deploy --only firestore:rules,storage` if the Firebase CLI is installed).
-6. Add the real GitHub Pages domain to Authentication → Settings → Authorized domains.
-7. Wrap `content-hub-firebase.html` with the DOCTYPE/head/body structure (same transformation
-   `sync_from_scratchpad.py` in the repo root does for the localStorage version — this file wasn't
-   run through it yet since the config isn't real), copy it over `index.html` on `master`, and push.
+1. In the Firebase Console for this project, confirm **Firestore Database** (production
+   mode) and **Authentication → Sign-in method → Google** are both enabled.
+2. Publish `firestore.rules` (copy-paste into Firestore Database → Rules tab → Publish).
+3. **Authentication → Settings → Authorized domains → Add domain** → add the real GitHub
+   Pages domain (`deane-ms.github.io`).
+4. Wrap `content-hub-firebase.html` with the DOCTYPE/head/body structure (same transformation
+   `sync_from_scratchpad.py` in the repo root does for the localStorage version -- this file
+   hasn't been run through it yet), copy it over `index.html` on `master`, and push.
 
 ## Local testing setup (for reference, not needed for production)
 
