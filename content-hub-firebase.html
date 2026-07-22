@@ -53,11 +53,11 @@
       --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6);
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
 
-      --b-news: #818cf8;
-      --b-case: #60a5fa;
-      --b-industry: #22d3ee;
-      --b-bts: #94a3b8;
-      --b-promo: #f59e0b;
+      --b-news: #a5b4fc;
+      --b-case: #93c5fd;
+      --b-industry: #67e8f9;
+      --b-bts: #cbd5e1;
+      --b-promo: #fbbf24;
 
       --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
       --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
@@ -72,7 +72,7 @@
     --brand: #ff7a52; --brand-hover: #ff9470; --brand-soft: #3a2015;
     --danger: #f87171; --danger-soft: #3f1d1d;
     --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6); --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --b-news: #818cf8; --b-case: #60a5fa; --b-industry: #22d3ee; --b-bts: #94a3b8; --b-promo: #f59e0b;
+    --b-news: #a5b4fc; --b-case: #93c5fd; --b-industry: #67e8f9; --b-bts: #cbd5e1; --b-promo: #fbbf24;
     --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
     --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
     --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
@@ -104,6 +104,7 @@
   }
   button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
   .app { max-width: 78rem; margin: 0 auto; padding: 1.75rem 1.5rem 4rem; }
+  @media (min-width: 1600px) { .app { max-width: min(92vw, 150rem); } }
 
   /* ---------- header ---------- */
   .topbar {
@@ -661,7 +662,11 @@
         <button class="icon-btn" id="nextBtn" aria-label="Next">›</button>
         <h2 id="periodLabel"></h2>
         <button type="button" class="icon-btn has-badge" id="filterToggleBtn" aria-label="Search and filter posts" aria-expanded="false" title="Search and filter posts">
-          🔍<span class="filter-active-dot" id="filterActiveDot" hidden></span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <span class="filter-active-dot" id="filterActiveDot" hidden></span>
         </button>
       </div>
     </div>
