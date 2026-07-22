@@ -134,6 +134,15 @@
   }
   .brand h1 { font-size: 1.25rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
   .brand p { margin: 0.1rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
+  .quick-link-row { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.3rem !important; }
+  .quick-link { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.76rem; color: var(--text-faint); text-decoration: none; }
+  .quick-link:hover { color: var(--brand); text-decoration: underline; }
+  .quick-link-edit {
+    all: unset; cursor: pointer; color: var(--text-faint); font-size: 0.72rem; line-height: 1;
+    padding: 0.1rem 0.2rem; border-radius: 4px;
+  }
+  .quick-link-edit:hover { color: var(--brand); background: var(--brand-soft); }
+  .quick-link-edit:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 
   .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
   .user-chip { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
@@ -391,6 +400,19 @@
   .activity-date-header:first-child { margin-top: 0; }
   .idea-link-row { display: flex; gap: 0.5rem; }
   .idea-link-row input { flex: 1; }
+  .owner-input-row { display: flex; gap: 0.5rem; }
+  .owner-input-row input { flex: 1; }
+  .owner-chip-list { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+  .owner-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 999px;
+    padding: 0.15rem 0.5rem 0.15rem 0.15rem; font-size: 0.76rem; color: var(--text);
+  }
+  .owner-chip-remove {
+    all: unset; cursor: pointer; width: 1rem; height: 1rem; display: flex; align-items: center; justify-content: center;
+    color: var(--text-faint); font-size: 0.7rem; line-height: 1;
+  }
+  .owner-chip-remove:hover { color: var(--danger); }
   .idea-image-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
   .idea-image-thumb { position: relative; width: 4.2rem; height: 4.2rem; border-radius: 6px; overflow: hidden; background: var(--surface-alt); border: 1px solid var(--border); }
   .idea-image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -662,18 +684,22 @@
       <div>
         <h1>MediaShock APAC — LinkedIn Content Hub</h1>
         <p>Content calendar &amp; scheduling</p>
+        <p class="quick-link-row">
+          <a class="quick-link" id="quickLinkAnchor" href="#" target="_blank" rel="noopener noreferrer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span id="quickLinkLabel"></span>
+          </a>
+          <button type="button" class="quick-link-edit" id="editQuickLinkBtn" aria-label="Edit quick link" title="Edit quick link">✎</button>
+        </p>
       </div>
     </div>
     <div class="topbar-actions">
       <span class="user-chip" id="userChip" hidden></span>
       <button type="button" class="icon-btn" id="themeToggleBtn" aria-label="Toggle color theme" title="Toggle color theme"></button>
-      <a class="icon-btn" href="https://sg.linkedin.com/company/mediashock-apac" target="_blank" rel="noopener noreferrer" aria-label="MediaShock APAC on LinkedIn" title="MediaShock APAC on LinkedIn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-          <rect x="2" y="9" width="4" height="12"></rect>
-          <circle cx="4" cy="4" r="2"></circle>
-        </svg>
-      </a>
       <button class="btn btn-ghost" id="importBtn">Import JSON</button>
       <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
       <button class="btn btn-primary" id="newPostBtn">+ New Post</button>
@@ -956,6 +982,8 @@
   </div>
 </div>
 
+<datalist id="ownerNamesList"></datalist>
+
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
@@ -979,9 +1007,12 @@
           </select>
         </label>
       </div>
-      <label>Owner (optional)
-        <input type="text" id="f-owner" placeholder="Who's this assigned to?">
-      </label>
+      <label for="f-owner-input">Owners (optional)</label>
+      <div class="owner-input-row">
+        <input type="text" id="f-owner-input" placeholder="Add an owner..." list="ownerNamesList">
+        <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
+      </div>
+      <div class="owner-chip-list" id="postOwnerChips"></div>
       <div class="field-row">
         <label>Scheduled Date
           <input type="date" id="f-date" required>
@@ -1047,9 +1078,14 @@
         <label>Content Bucket
           <select id="i-bucket" required></select>
         </label>
-        <label>Owner
-          <input type="text" id="i-owner" placeholder="Who's working on this?">
-        </label>
+        <div>
+          <label for="i-owner-input">Owners</label>
+          <div class="owner-input-row">
+            <input type="text" id="i-owner-input" placeholder="Add an owner..." list="ownerNamesList">
+            <button type="button" class="btn btn-ghost small" id="addIdeaOwnerBtn">Add</button>
+          </div>
+          <div class="owner-chip-list" id="ideaOwnerChips"></div>
+        </div>
       </div>
       <label for="i-notes">Idea / Brief</label>
       <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
@@ -1101,6 +1137,32 @@
       <div class="spacer"></div>
       <button type="button" class="btn btn-primary" id="bucketsDoneBtn">Done</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="quickLinkBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quickLinkModalTitle">
+    <div class="modal-head">
+      <h3 id="quickLinkModalTitle">Edit Quick Link</h3>
+      <button class="icon-btn" id="quickLinkModalClose" aria-label="Close">✕</button>
+    </div>
+    <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
+      A shared shortcut shown under the page title, for anyone signed in. Point it at anything useful --
+      the LinkedIn Page, a brand guide, a shared drive folder, etc.
+    </p>
+    <form id="quickLinkForm">
+      <label>Label
+        <input type="text" id="ql-label" placeholder="e.g. MediaShock APAC on LinkedIn" required>
+      </label>
+      <label>URL
+        <input type="url" id="ql-url" placeholder="https://..." required>
+      </label>
+      <div class="modal-actions">
+        <div class="spacer"></div>
+        <button type="button" class="btn btn-ghost" id="quickLinkCancelBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -1190,6 +1252,7 @@ import {
   var ideasCol = collection(db, "ideas");
   var analyticsDocRef = doc(db, "analytics", "current");
   var activityCol = collection(db, "activity");
+  var quickLinkDocRef = doc(db, "settings", "quickLink");
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
 
   function logActivity(type, summary) {
@@ -1263,7 +1326,7 @@ import {
   authSignOutBtn.addEventListener("click", doSignOut);
   topbarSignOutBtn.addEventListener("click", doSignOut);
 
-  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null;
+  var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null;
   var ideasSeeded = false, postsSeeded = false;
   var activityLog = [];
 
@@ -1284,6 +1347,7 @@ import {
       }
       posts = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       render();
+      renderOwnerNamesList();
     }, function (err) { console.error("posts listener error", err); });
 
     unsubBuckets = onSnapshot(bucketsCol, function (snap) {
@@ -1319,6 +1383,7 @@ import {
       }
       ideas = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       renderKanbanBoard();
+      renderOwnerNamesList();
       if (ideaBackdrop.classList.contains("open") && editingIdeaId) {
         var openIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
         if (openIdea) renderFeedbackLog(openIdea.feedback);
@@ -1343,11 +1408,21 @@ import {
       activityLog = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
       renderActivityFeed();
     }, function (err) { console.error("activity listener error", err); });
+
+    unsubQuickLink = onSnapshot(quickLinkDocRef, function (snap) {
+      if (!snap.exists()) {
+        var seed = { label: "MediaShock APAC on LinkedIn", url: "https://sg.linkedin.com/company/mediashock-apac" };
+        setDoc(quickLinkDocRef, seed).catch(function (e) { console.error("Failed to seed quick link", e); });
+        renderQuickLink(seed);
+        return;
+      }
+      renderQuickLink(snap.data());
+    }, function (err) { console.error("quick link listener error", err); });
   }
 
   function stopListeners() {
-    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity].forEach(function (fn) { if (fn) fn(); });
-    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = null;
+    [unsubPosts, unsubBuckets, unsubIdeas, unsubAnalytics, unsubActivity, unsubQuickLink].forEach(function (fn) { if (fn) fn(); });
+    unsubPosts = unsubBuckets = unsubIdeas = unsubAnalytics = unsubActivity = unsubQuickLink = null;
   }
 
   onAuthStateChanged(auth, function (user) {
@@ -1588,7 +1663,9 @@ import {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
   function avatarColorFor(name) {
-    var str = String(name || "");
+    // normalized so "Aqila", "aqila", and " Aqila " all land on the same color --
+    // otherwise the same person typed slightly differently looks like different people
+    var str = String(name || "").trim().toLowerCase();
     var hash = 0;
     for (var i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) >>> 0; }
     return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
@@ -1596,6 +1673,56 @@ import {
   function avatarHtml(name, sizeClass) {
     if (!name) return "";
     return '<span class="avatar-icon' + (sizeClass ? " " + sizeClass : "") + '" style="background:' + avatarColorFor(name) + '" title="' + escapeHtml(name) + '">' + escapeHtml(getInitials(name)) + '</span>';
+  }
+
+  // A small add/remove chip-list controller for multi-owner fields (used by both
+  // the Post and Idea modals) -- keeps the two forms' owner UIs in sync without
+  // duplicating the add/remove/render logic twice.
+  function createOwnerChipInput(inputEl, chipsEl) {
+    var owners = [];
+    function render() {
+      chipsEl.innerHTML = owners.map(function (name, i) {
+        return '<span class="owner-chip">' + avatarHtml(name, "small") + escapeHtml(name) +
+          '<button type="button" class="owner-chip-remove" data-i="' + i + '" aria-label="Remove ' + escapeHtml(name) + '">✕</button></span>';
+      }).join("");
+    }
+    function add() {
+      var name = inputEl.value.trim();
+      if (!name || owners.indexOf(name) > -1) { inputEl.value = ""; return; }
+      owners.push(name);
+      inputEl.value = "";
+      render();
+    }
+    chipsEl.addEventListener("click", function (e) {
+      var btn = e.target.closest(".owner-chip-remove");
+      if (!btn) return;
+      owners.splice(parseInt(btn.dataset.i, 10), 1);
+      render();
+    });
+    inputEl.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); add(); }
+    });
+    return {
+      add: add,
+      set: function (list) { owners = (list || []).slice(); render(); },
+      get: function () { return owners.slice(); }
+    };
+  }
+
+  // Suggests previously-used owner names via the input's native autocomplete,
+  // so the same person gets typed the same way (and so gets the same avatar)
+  // instead of drifting across slightly different spellings.
+  function renderOwnerNamesList() {
+    var seen = {};
+    var names = [];
+    posts.concat(ideas).forEach(function (item) {
+      (item.owners || (item.owner ? [item.owner] : [])).forEach(function (name) {
+        var key = name.trim().toLowerCase();
+        if (key && !seen[key]) { seen[key] = true; names.push(name); }
+      });
+    });
+    var el = document.getElementById("ownerNamesList");
+    el.innerHTML = names.map(function (n) { return '<option value="' + escapeHtml(n) + '"></option>'; }).join("");
   }
 
   // ---------- calendar: rendering ----------
@@ -1816,11 +1943,12 @@ import {
     btn.draggable = true;
     btn.style.setProperty("--dot", bucketColorFor(post.bucket));
     var imgBadge = post.images && post.images.length ? '<span class="pc-img-badge">🖼️ ' + post.images.length + '</span>' : '';
+    var postOwners = post.owners || (post.owner ? [post.owner] : []);
     btn.innerHTML =
       '<span class="pc-title">' + escapeHtml(post.title) + '</span>' +
       '<span class="pc-meta"><span class="pc-time">' + formatTime12(post.time) + '</span>' +
       imgBadge +
-      avatarHtml(post.owner, "small") +
+      postOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") +
       '<span class="status-pill status-' + post.status + '">' + post.status + '</span></span>';
     btn.addEventListener("click", function () { openModal(post.id); });
     btn.addEventListener("dragstart", function (e) {
@@ -1837,7 +1965,8 @@ import {
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
   var fStatus = document.getElementById("f-status");
-  var fOwner = document.getElementById("f-owner");
+  var postOwnersCtrl = createOwnerChipInput(document.getElementById("f-owner-input"), document.getElementById("postOwnerChips"));
+  document.getElementById("addPostOwnerBtn").addEventListener("click", function () { postOwnersCtrl.add(); });
   var fDate = document.getElementById("f-date");
   var fTime = document.getElementById("f-time");
   var fCopy = document.getElementById("f-copy");
@@ -2012,7 +2141,7 @@ import {
       fTitle.value = post.title;
       fBucket.value = post.bucket;
       fStatus.value = post.status;
-      fOwner.value = post.owner || "";
+      postOwnersCtrl.set(post.owners || (post.owner ? [post.owner] : []));
       fDate.value = post.date;
       fTime.value = post.time;
       fCopy.value = post.copy;
@@ -2031,10 +2160,10 @@ import {
       fStatus.value = "draft";
       fDate.value = prefillDate || dateKey(new Date());
       fTime.value = "09:00";
+      postOwnersCtrl.set((prefillData && prefillData.owners) || []);
       if (prefillData) {
         fTitle.value = prefillData.title || "";
         fCopy.value = prefillData.copy || "";
-        fOwner.value = prefillData.owner || "";
       }
       currentImages = [];
       deleteBtn.hidden = true;
@@ -2099,7 +2228,7 @@ import {
       title: title,
       bucket: fBucket.value,
       status: fStatus.value,
-      owner: fOwner.value.trim(),
+      owners: postOwnersCtrl.get(),
       date: date,
       time: fTime.value || "09:00",
       copy: fCopy.value,
@@ -2140,7 +2269,8 @@ import {
   var ideaForm = document.getElementById("ideaForm");
   var iTitle = document.getElementById("i-title");
   var iBucket = document.getElementById("i-bucket");
-  var iOwner = document.getElementById("i-owner");
+  var ideaOwnersCtrl = createOwnerChipInput(document.getElementById("i-owner-input"), document.getElementById("ideaOwnerChips"));
+  document.getElementById("addIdeaOwnerBtn").addEventListener("click", function () { ideaOwnersCtrl.add(); });
   var iNotes = document.getElementById("i-notes");
   var iStage = document.getElementById("i-stage");
   var iFeedbackInput = document.getElementById("i-feedback-input");
@@ -2229,6 +2359,7 @@ import {
             var fb = idea.feedback || [];
             var latestFb = fb.length ? fb[fb.length - 1] : null;
             var imgs = idea.images || [];
+            var ideaOwners = idea.owners || (idea.owner ? [idea.owner] : []);
             var titleBlock = '<span class="ic-title">' + escapeHtml(idea.title) + '</span>';
             var headBlock = imgs.length
               ? '<span class="ic-head-row"><span class="ic-thumb-wrap"><img class="ic-thumb" src="' + escapeHtml(imgs[0]) + '" alt="">' +
@@ -2239,7 +2370,9 @@ import {
               headBlock +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
               (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
-              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (idea.owner ? ' · ' + avatarHtml(idea.owner, "small") : '') + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
+              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) +
+              (ideaOwners.length ? ' · ' + ideaOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") : '') +
+              (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
               '</button>';
           }).join("")
         : '<p class="kanban-empty">No ideas here yet.</p>';
@@ -2317,7 +2450,7 @@ import {
       ideaModalTitle.textContent = "Edit Idea";
       iTitle.value = idea.title;
       iBucket.value = idea.bucket;
-      iOwner.value = idea.owner || "";
+      ideaOwnersCtrl.set(idea.owners || (idea.owner ? [idea.owner] : []));
       iNotes.value = idea.notes || "";
       iStage.value = idea.stage;
       renderFeedbackLog(idea.feedback);
@@ -2335,6 +2468,7 @@ import {
       ideaForm.reset();
       iBucket.value = buckets[0] ? buckets[0].key : "";
       iStage.value = "idea";
+      ideaOwnersCtrl.set([]);
       renderFeedbackLog([]);
       currentIdeaImages = [];
       deleteIdeaBtn.hidden = true;
@@ -2374,7 +2508,7 @@ import {
     var data = {
       title: title,
       bucket: iBucket.value,
-      owner: iOwner.value.trim(),
+      owners: ideaOwnersCtrl.get(),
       notes: iNotes.value,
       stage: iStage.value,
       images: currentIdeaImages.slice(),
@@ -2433,7 +2567,7 @@ import {
     if (!idea) return;
     closeIdeaModal();
     document.querySelector('.tab-btn[data-tab="calendar"]').click();
-    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes, owner: idea.owner });
+    openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes, owners: idea.owners || (idea.owner ? [idea.owner] : []) });
   });
 
   iStage.addEventListener("change", function () {
@@ -2478,6 +2612,48 @@ import {
     renderBucketsList();
     bucketsBackdrop.classList.add("open");
     bucketsBackdrop.setAttribute("aria-hidden", "false");
+  });
+
+  // ---------- shared, editable quick link (topbar shortcut) ----------
+  var quickLinkAnchor = document.getElementById("quickLinkAnchor");
+  var quickLinkLabel = document.getElementById("quickLinkLabel");
+  var quickLinkBackdrop = document.getElementById("quickLinkBackdrop");
+  var qlLabelInput = document.getElementById("ql-label");
+  var qlUrlInput = document.getElementById("ql-url");
+  var quickLinkLastFocused = null;
+
+  function renderQuickLink(data) {
+    quickLinkAnchor.href = data.url || "#";
+    quickLinkLabel.textContent = data.label || "";
+  }
+
+  function openQuickLinkModal() {
+    quickLinkLastFocused = document.activeElement;
+    qlLabelInput.value = quickLinkLabel.textContent;
+    qlUrlInput.value = quickLinkAnchor.getAttribute("href") || "";
+    quickLinkBackdrop.classList.add("open");
+    quickLinkBackdrop.setAttribute("aria-hidden", "false");
+    setTimeout(function () { qlLabelInput.focus(); }, 10);
+  }
+  function closeQuickLinkModal() {
+    quickLinkBackdrop.classList.remove("open");
+    if (quickLinkLastFocused && typeof quickLinkLastFocused.focus === "function") quickLinkLastFocused.focus();
+  }
+
+  document.getElementById("editQuickLinkBtn").addEventListener("click", openQuickLinkModal);
+  document.getElementById("quickLinkModalClose").addEventListener("click", closeQuickLinkModal);
+  document.getElementById("quickLinkCancelBtn").addEventListener("click", closeQuickLinkModal);
+
+  document.getElementById("quickLinkForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var label = qlLabelInput.value.trim();
+    var url = qlUrlInput.value.trim();
+    if (!label || !url) return;
+    setDoc(quickLinkDocRef, { label: label, url: url }).then(function () {
+      closeQuickLinkModal();
+    }).catch(function (err) {
+      alert("Couldn't save this link: " + err.message);
+    });
   });
 
   function closeBucketsModal() {
@@ -3479,6 +3655,7 @@ import {
     if (importBackdrop.classList.contains("open")) closeImport();
     if (exportAnalyticsBackdrop.classList.contains("open")) closeExportAnalytics();
     if (importAnalyticsBackdrop.classList.contains("open")) closeImportAnalytics();
+    if (quickLinkBackdrop.classList.contains("open")) closeQuickLinkModal();
   });
 
   renderLegend();
