@@ -579,6 +579,13 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
     background: var(--surface-alt); color: var(--text); font-weight: 400; font-size: 0.85rem;
   }
+  select {
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    padding-right: 2.1rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.65rem center;
+  }
   /* the native date/time picker icon renders dark-on-dark and disappears -- flip it visible */
   @media (prefers-color-scheme: dark) {
     input[type="date"]::-webkit-calendar-picker-indicator,
@@ -591,7 +598,11 @@
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
   textarea { resize: vertical; min-height: 6.5rem; line-height: 1.45; }
   #i-notes { min-height: 9.5rem; }
-  #f-copy { min-height: 13rem; }
+  #f-copy { min-height: 13rem; scrollbar-width: thin; scrollbar-color: var(--border) var(--surface-alt); }
+  #f-copy::-webkit-scrollbar { width: 10px; }
+  #f-copy::-webkit-scrollbar-track { background: var(--surface-alt); }
+  #f-copy::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+  #f-copy::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
   .notes-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: -0.3rem 0 0.2rem; }
   .notes-link-chip {
     display: inline-flex; align-items: center; gap: 0.3rem;
@@ -976,7 +987,7 @@
 <datalist id="ownerNamesList"></datalist>
 
 <div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
       <h3 id="modalTitle">New Post</h3>
       <button class="icon-btn" id="modalClose" aria-label="Close">✕</button>
