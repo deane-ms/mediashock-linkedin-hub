@@ -214,9 +214,10 @@
 
   /* ---------- legend ---------- */
   .legend {
-    display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.1rem;
     margin-bottom: 1.4rem; padding: 0.1rem 0.2rem;
   }
+  .legend-items { display: contents; }
   .legend-item { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--text-soft); }
   .legend-item i { width: 0.6rem; height: 0.6rem; border-radius: 3px; background: var(--dot); display: inline-block; }
 
@@ -383,6 +384,11 @@
   .activity-summary { font-size: 0.86rem; color: var(--text); font-weight: 600; }
   .activity-meta { font-size: 0.72rem; color: var(--text-faint); margin-top: 0.15rem; }
   .activity-empty { color: var(--text-faint); font-size: 0.85rem; padding: 0.6rem 0.2rem; }
+  .activity-date-header {
+    font-size: 0.72rem; font-weight: 700; color: var(--text-faint); text-transform: uppercase;
+    letter-spacing: 0.05em; margin-top: 0.5rem; padding: 0 0.2rem;
+  }
+  .activity-date-header:first-child { margin-top: 0; }
   .idea-link-row { display: flex; gap: 0.5rem; }
   .idea-link-row input { flex: 1; }
   .idea-image-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0 0.2rem; }
@@ -708,8 +714,15 @@
       <button type="button" class="btn btn-ghost small" id="clearFiltersBtn">Clear</button>
     </div>
 
-    <div class="legend" id="legendRoot"></div>
-    <button type="button" class="btn btn-ghost small" id="manageBucketsBtn" style="margin:-0.8rem 0 1.2rem;">⚙ Manage buckets</button>
+    <div class="legend" id="legendRoot">
+      <button type="button" class="icon-btn" id="manageBucketsBtn" aria-label="Manage buckets" title="Manage buckets">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+      <span class="legend-items" id="legendItems"></span>
+    </div>
 
     <div id="weekdayRow" class="weekday-row"></div>
     <div id="calendarRoot"></div>
@@ -1501,18 +1514,42 @@ import {
     idea_created: "💡", idea_updated: "✏️", idea_deleted: "🗑️",
     idea_moved: "➡️", idea_feedback: "💬"
   };
+  function activityDateHeader(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "Unknown date";
+    var startOfDay = new Date(d); startOfDay.setHours(0, 0, 0, 0);
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    var diffDays = Math.round((today - startOfDay) / 86400000);
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    return d.toLocaleDateString("en-SG", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+  }
+  function formatTimeOnly(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleTimeString("en-SG", { hour: "numeric", minute: "2-digit" });
+  }
   function renderActivityFeed() {
     var el = document.getElementById("activityFeed");
     if (!activityLog.length) {
       el.innerHTML = '<p class="activity-empty">No activity yet.</p>';
       return;
     }
-    el.innerHTML = activityLog.map(function (a) {
+    var html = "";
+    var lastGroup = null;
+    activityLog.forEach(function (a) {
+      var d = new Date(a.at);
+      var groupKey = isNaN(d.getTime()) ? "unknown" : d.toDateString();
+      if (groupKey !== lastGroup) {
+        html += '<div class="activity-date-header">' + activityDateHeader(a.at) + '</div>';
+        lastGroup = groupKey;
+      }
       var icon = ACTIVITY_ICONS[a.type] || "•";
-      return '<div class="activity-item"><span class="activity-icon">' + icon + '</span>' +
+      html += '<div class="activity-item"><span class="activity-icon">' + icon + '</span>' +
         '<div class="activity-body"><div class="activity-summary">' + escapeHtml(a.summary) + '</div>' +
-        '<div class="activity-meta">' + escapeHtml(a.user || "unknown") + ' · ' + formatDateTime(a.at) + '</div></div></div>';
-    }).join("");
+        '<div class="activity-meta">' + escapeHtml(a.user || "unknown") + ' · ' + formatTimeOnly(a.at) + '</div></div></div>';
+    });
+    el.innerHTML = html;
   }
 
   // ---------- date helpers ----------
@@ -2398,7 +2435,7 @@ import {
 
   // ---------- calendar: legend + bucket select (dynamic) ----------
   function renderLegend() {
-    document.getElementById("legendRoot").innerHTML = buckets.map(function (b) {
+    document.getElementById("legendItems").innerHTML = buckets.map(function (b) {
       return '<span class="legend-item"><i style="--dot:' + b.color + '"></i>' + escapeHtml(b.label) + '</span>';
     }).join("");
   }
