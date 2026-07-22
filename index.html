@@ -243,7 +243,7 @@
   .bucket-row .bucket-delete.armed { background: var(--danger); color: #fff; border-color: var(--danger); font-size: 0.62rem; width: auto; padding: 0 0.5rem; }
 
   /* ---------- emoji picker ---------- */
-  .field-with-action { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
+  .field-with-action { display: flex; align-items: center; justify-content: space-between; }
   .field-with-action label { font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
   .avatar-icon {
     display: inline-flex; align-items: center; justify-content: center;
@@ -1069,12 +1069,14 @@
           </select>
         </label>
       </div>
-      <label for="f-owner-input">Owners (optional)</label>
-      <div class="owner-input-row">
-        <input type="text" id="f-owner-input" placeholder="Add an owner..." list="ownerNamesList">
-        <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
+      <div class="field-col">
+        <label for="f-owner-input">Owners (optional)</label>
+        <div class="owner-input-row">
+          <input type="text" id="f-owner-input" placeholder="Add an owner..." list="ownerNamesList">
+          <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
+        </div>
+        <div class="owner-chip-list" id="postOwnerChips"></div>
       </div>
-      <div class="owner-chip-list" id="postOwnerChips"></div>
       <div class="field-row">
         <label>Scheduled Date
           <input type="date" id="f-date" required>
@@ -1083,27 +1085,29 @@
           <input type="time" id="f-time" value="09:00">
         </label>
       </div>
-      <div class="field-with-action">
-        <label for="f-copy">Post Copy / Draft Text</label>
-        <div style="display:flex;align-items:center;gap:0.6rem;">
-          <span class="char-counter" id="copyCharCount">0 / 3000</span>
-          <button type="button" class="icon-btn" id="postPreviewToggleBtn" aria-expanded="false" aria-controls="postPreviewPanel" aria-label="Preview as LinkedIn post" title="Preview as LinkedIn post">
+      <div class="field-col">
+        <div class="field-with-action">
+          <label for="f-copy">Post Copy / Draft Text</label>
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <span class="char-counter" id="copyCharCount">0 / 3000</span>
+            <button type="button" class="icon-btn" id="postPreviewToggleBtn" aria-expanded="false" aria-controls="postPreviewPanel" aria-label="Preview as LinkedIn post" title="Preview as LinkedIn post">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+            <button type="button" class="icon-btn" id="emojiToggleBtn" aria-expanded="false" aria-controls="emojiPicker" aria-label="Insert emoji">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
+              <circle cx="12" cy="12" r="9"></circle>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+              <line x1="9" y1="9" x2="9.01" y2="9"></line>
+              <line x1="15" y1="9" x2="15.01" y2="9"></line>
             </svg>
-          </button>
-          <button type="button" class="icon-btn" id="emojiToggleBtn" aria-expanded="false" aria-controls="emojiPicker" aria-label="Insert emoji">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-            <line x1="9" y1="9" x2="9.01" y2="9"></line>
-            <line x1="15" y1="9" x2="15.01" y2="9"></line>
-          </svg>
-          </button>
+            </button>
+          </div>
         </div>
+        <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
       </div>
-      <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
       <div class="li-preview" id="postPreviewPanel" hidden>
         <div class="li-preview-head">
           <span class="logo-mark">MS</span>
@@ -1169,16 +1173,20 @@
           <div class="owner-chip-list" id="ideaOwnerChips"></div>
         </div>
       </div>
-      <label for="i-notes">Idea / Brief</label>
-      <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
-      <div class="notes-links" id="notesLinks"></div>
-
-      <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
-      <div class="idea-link-row">
-        <input type="url" id="i-image-link" placeholder="https://...">
-        <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
+      <div class="field-col">
+        <label for="i-notes">Idea / Brief</label>
+        <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
+        <div class="notes-links" id="notesLinks"></div>
       </div>
-      <div class="idea-image-grid" id="ideaImageGrid"></div>
+
+      <div class="field-col">
+        <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
+        <div class="idea-link-row">
+          <input type="url" id="i-image-link" placeholder="https://...">
+          <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
+        </div>
+        <div class="idea-image-grid" id="ideaImageGrid"></div>
+      </div>
 
       <div class="idea-stage-row">
         <label>Stage
@@ -1186,8 +1194,10 @@
         </label>
       </div>
 
-      <label style="margin-bottom:0.3rem;">Feedback &amp; iteration log</label>
-      <div class="feedback-log" id="feedbackLog"></div>
+      <div class="field-col">
+        <label>Feedback &amp; iteration log</label>
+        <div class="feedback-log" id="feedbackLog"></div>
+      </div>
       <div class="feedback-input-row">
         <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
         <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
@@ -2291,9 +2301,12 @@ import {
     if (willOpen) { renderEmojiTabs(); renderEmojiGrid(); }
   });
 
+  var sendToCalendarSourceIdeaId = null;
+
   function openModal(postId, prefillDate, prefillData) {
     lastFocused = document.activeElement;
     editingId = postId;
+    sendToCalendarSourceIdeaId = null;
     deleteArmed = false;
     resetDeleteBtn();
     carouselIndex = 0;
@@ -2348,6 +2361,7 @@ import {
   function closeModal() {
     modalBackdrop.classList.remove("open");
     editingId = null;
+    sendToCalendarSourceIdeaId = null;
     if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
   }
 
@@ -2387,6 +2401,8 @@ import {
 
     var wasEditing = !!editingId;
     var postId = editingId || ("post-" + Date.now() + "-" + Math.floor(Math.random() * 1000));
+    var sourceIdeaId = sendToCalendarSourceIdeaId;
+    var sourceIdea = sourceIdeaId ? ideas.find(function (i) { return i.id === sourceIdeaId; }) : null;
     var submitBtn = postForm.querySelector('button[type="submit"]');
     submitBtn.disabled = true;
     submitBtn.textContent = "Saving...";
@@ -2404,6 +2420,11 @@ import {
       lastEditedAt: new Date().toISOString()
     }).then(function () {
       logActivity(wasEditing ? "post_updated" : "post_created", (wasEditing ? "Updated" : "Added") + ' post "' + title + '"');
+      if (sourceIdeaId) {
+        deleteDoc(doc(ideasCol, sourceIdeaId)).then(function () {
+          logActivity("idea_deleted", 'Idea "' + (sourceIdea ? sourceIdea.title : sourceIdeaId) + '" sent to Calendar and removed from the board');
+        }).catch(function (err) { console.error("Couldn't remove the source idea after sending to calendar", err); });
+      }
       closeModal();
     }).catch(function (err) {
       alert("Couldn't save this post: " + err.message);
@@ -2748,9 +2769,11 @@ import {
     if (!editingIdeaId) return;
     var idea = ideas.find(function (i) { return i.id === editingIdeaId; });
     if (!idea) return;
+    var sourceIdeaId = editingIdeaId;
     closeIdeaModal();
     document.querySelector('.tab-btn[data-tab="calendar"]').click();
     openModal(null, null, { title: idea.title, bucket: idea.bucket, copy: idea.notes, owners: idea.owners || (idea.owner ? [idea.owner] : []) });
+    sendToCalendarSourceIdeaId = sourceIdeaId;
   });
 
   iStage.addEventListener("change", function () {
