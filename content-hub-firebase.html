@@ -53,11 +53,11 @@
       --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6);
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
 
-      --b-news: #a5b4fc;
-      --b-case: #93c5fd;
-      --b-industry: #67e8f9;
-      --b-bts: #cbd5e1;
-      --b-promo: #fbbf24;
+      --b-news: #c7d2fe;
+      --b-case: #bfdbfe;
+      --b-industry: #a5f3fc;
+      --b-bts: #e2e8f0;
+      --b-promo: #fcd34d;
 
       --s-draft-fg: #94a3b8;    --s-draft-bg: #1e293b;    --s-draft-line: #334155;
       --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
@@ -72,7 +72,7 @@
     --brand: #ff7a52; --brand-hover: #ff9470; --brand-soft: #3a2015;
     --danger: #f87171; --danger-soft: #3f1d1d;
     --shadow: 0 20px 45px -18px rgba(0, 0, 0, 0.6); --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --b-news: #a5b4fc; --b-case: #93c5fd; --b-industry: #67e8f9; --b-bts: #cbd5e1; --b-promo: #fbbf24;
+    --b-news: #c7d2fe; --b-case: #bfdbfe; --b-industry: #a5f3fc; --b-bts: #e2e8f0; --b-promo: #fcd34d;
     --s-draft-fg: #94a3b8; --s-draft-bg: #1e293b; --s-draft-line: #334155;
     --s-approved-fg: #4ade80; --s-approved-bg: #14251a; --s-approved-line: #14532d;
     --s-scheduled-fg: #0f172a; --s-scheduled-bg: #ff7a52; --s-scheduled-line: #ff7a52;
@@ -128,7 +128,7 @@
   .brand p { margin: 0.1rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
 
   .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
-  .user-chip { font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
+  .user-chip { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; color: var(--text-soft); padding: 0 0.4rem; }
 
   /* ---------- auth gate ---------- */
   .auth-gate {
@@ -390,7 +390,8 @@
   .idea-image-remove:hover { background: var(--danger); }
   .feedback-log { display: flex; flex-direction: column; gap: 0.6rem; max-height: 12rem; overflow-y: auto; margin: 0.6rem 0; padding-right: 0.2rem; }
   .feedback-item { background: var(--surface-alt); border-radius: 8px; padding: 0.5rem 0.65rem; font-size: 0.8rem; }
-  .feedback-item .fb-date { display: block; font-size: 0.65rem; color: var(--text-faint); margin-bottom: 0.15rem; font-family: var(--font-mono); }
+  .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
+  .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); font-family: var(--font-mono); }
   .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
   .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; margin: 0.2rem 0 0.9rem; }
   .idea-stage-row label { flex: 1; }
@@ -468,7 +469,7 @@
 
   /* ---------- chart cards ---------- */
   .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
-  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; margin-bottom: 1rem; }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch; margin-bottom: 1rem; }
   .chart-row .chart-card { margin-bottom: 0; }
   @media (max-width: 980px) { .chart-row { grid-template-columns: 1fr; } }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
@@ -552,6 +553,7 @@
   input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); outline-offset: 1px; background: var(--surface); }
   textarea { resize: vertical; min-height: 6.5rem; line-height: 1.45; }
   #i-notes { min-height: 9.5rem; }
+  #f-copy { min-height: 13rem; }
   .notes-links { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: -0.3rem 0 0.2rem; }
   .notes-link-chip {
     display: inline-flex; align-items: center; gap: 0.3rem;
@@ -639,6 +641,7 @@
     </div>
     <div class="topbar-actions">
       <span class="user-chip" id="userChip" hidden></span>
+      <button type="button" class="icon-btn" id="themeToggleBtn" aria-label="Toggle color theme" title="Toggle color theme"></button>
       <button class="btn btn-ghost" id="importBtn">Import JSON</button>
       <button class="btn btn-ghost" id="exportBtn">Export Calendar (JSON)</button>
       <button class="btn btn-primary" id="newPostBtn">+ New Post</button>
@@ -1176,6 +1179,39 @@ import {
   var topbarSignOutBtn = document.getElementById("signOutBtn");
   var userChip = document.getElementById("userChip");
 
+  // ---------- light/dark theme toggle (per-browser preference, not shared data) ----------
+  var THEME_STORAGE_KEY = "mscontenthub_theme";
+  var themeToggleBtn = document.getElementById("themeToggleBtn");
+  var SUN_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<circle cx="12" cy="12" r="4"></circle><line x1="12" y1="2" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="22"></line>' +
+    '<line x1="4.93" y1="4.93" x2="6.34" y2="6.34"></line><line x1="17.66" y1="17.66" x2="19.07" y2="19.07"></line>' +
+    '<line x1="2" y1="12" x2="4" y2="12"></line><line x1="20" y1="12" x2="22" y2="12"></line>' +
+    '<line x1="4.93" y1="19.07" x2="6.34" y2="17.66"></line><line x1="17.66" y1="6.34" x2="19.07" y2="4.93"></line></svg>';
+  var MOON_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+
+  function isEffectivelyDark(theme) {
+    return theme === "dark" || (!theme && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+  function applyTheme(theme) {
+    if (theme === "dark" || theme === "light") {
+      document.documentElement.setAttribute("data-theme", theme);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    var dark = isEffectivelyDark(theme);
+    themeToggleBtn.innerHTML = dark ? SUN_ICON : MOON_ICON;
+    themeToggleBtn.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  }
+  var storedTheme = null;
+  try { storedTheme = localStorage.getItem(THEME_STORAGE_KEY); } catch (e) {}
+  applyTheme(storedTheme);
+  themeToggleBtn.addEventListener("click", function () {
+    var next = isEffectivelyDark(document.documentElement.getAttribute("data-theme")) ? "light" : "dark";
+    try { localStorage.setItem(THEME_STORAGE_KEY, next); } catch (e) {}
+    applyTheme(next);
+  });
+
   signInBtn.addEventListener("click", function () {
     signInBtn.disabled = true;
     authStatus.textContent = "Opening Google sign-in...";
@@ -1305,7 +1341,8 @@ import {
     authGate.hidden = true;
     appRoot.hidden = false;
     userChip.hidden = false;
-    userChip.textContent = user.email;
+    var displayName = user.displayName || user.email;
+    userChip.innerHTML = avatarHtml(displayName, "small") + '<span>' + escapeHtml(displayName) + '</span>';
     topbarSignOutBtn.hidden = false;
     startListeners();
   });
@@ -1964,7 +2001,8 @@ import {
   document.getElementById("newPostBtn").addEventListener("click", function () { openModal(null); });
   document.getElementById("modalClose").addEventListener("click", closeModal);
   document.getElementById("cancelBtn").addEventListener("click", closeModal);
-  modalBackdrop.addEventListener("click", function (e) { if (e.target === modalBackdrop) closeModal(); });
+  // Deliberately no click-outside-to-close here -- accidental clicks off a long
+  // post draft shouldn't discard it. Use Cancel/close button or Escape instead.
 
   // Firestore documents have a hard 1MiB limit. Images are stored inline as base64, so a post
   // with several large photos could exceed that -- fail loudly and early instead of letting
@@ -2138,7 +2176,7 @@ import {
               headBlock +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
               (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
-              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (idea.owner ? ' · ' + escapeHtml(idea.owner) : '') + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
+              '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) + (idea.owner ? ' · ' + avatarHtml(idea.owner, "small") : '') + (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
               '</button>';
           }).join("")
         : '<p class="kanban-empty">No ideas here yet.</p>';
@@ -2193,7 +2231,10 @@ import {
     var list = feedback || [];
     feedbackLogEl.innerHTML = list.length
       ? list.map(function (f) {
-          return '<div class="feedback-item"><span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span>' + escapeHtml(f.text) + '</div>';
+          return '<div class="feedback-item"><div class="fb-head">' +
+            avatarHtml(f.author, "small") +
+            '<span class="fb-date">' + formatDateShort(f.date.slice(0, 10)) + '</span></div>' +
+            escapeHtml(f.text) + '</div>';
         }).join("")
       : '<p class="feedback-empty">No feedback logged yet.</p>';
     feedbackLogEl.scrollTop = feedbackLogEl.scrollHeight;
@@ -2260,7 +2301,7 @@ import {
   document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
   document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
   document.getElementById("ideaCancelBtn").addEventListener("click", closeIdeaModal);
-  ideaBackdrop.addEventListener("click", function (e) { if (e.target === ideaBackdrop) closeIdeaModal(); });
+  // Deliberately no click-outside-to-close here -- see the note on modalBackdrop above.
 
   ideaForm.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -2297,7 +2338,7 @@ import {
     if (!text || !editingIdeaId) return;
     var feedbackIdea = ideas.find(function (i) { return i.id === editingIdeaId; });
     updateDoc(doc(ideasCol, editingIdeaId), {
-      feedback: arrayUnion({ text: text, date: new Date().toISOString() })
+      feedback: arrayUnion({ text: text, date: new Date().toISOString(), author: auth.currentUser ? (auth.currentUser.displayName || auth.currentUser.email) : null })
     }).then(function () {
       logActivity("idea_feedback", 'Added feedback on "' + (feedbackIdea ? feedbackIdea.title : editingIdeaId) + '"');
       iFeedbackInput.value = "";
