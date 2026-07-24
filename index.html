@@ -439,6 +439,11 @@
   .activity-feed { display: flex; flex-direction: column; gap: 0.5rem; }
   .activity-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; gap: 0.6rem; }
   .activity-icon { display: inline-flex; align-items: center; line-height: 1; flex-shrink: 0; color: var(--text-faint); }
+  .activity-icon.act-created { color: var(--good); }
+  .activity-icon.act-updated { color: var(--brand); }
+  .activity-icon.act-deleted { color: var(--bad); }
+  .activity-icon.act-moved { color: var(--b-case); }
+  .activity-icon.act-feedback { color: var(--b-news); }
   .activity-body { flex: 1; min-width: 0; }
   .activity-summary { font-size: 0.86rem; color: var(--text); font-weight: 600; }
   .activity-meta { font-size: 0.72rem; color: var(--text-faint); margin-top: 0.15rem; }
@@ -567,12 +572,20 @@
 
   /* ---------- chart cards ---------- */
   .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
-  .goal-card { display: block; width: 100%; text-align: left; cursor: pointer; }
+  #goalCardsContainer { display: grid; gap: 1rem; }
+  #goalCardsContainer:not(:empty) { margin-bottom: 1rem; }
+  #goalCardsContainer.goal-cols-1 { grid-template-columns: 1fr; }
+  #goalCardsContainer.goal-cols-2 { grid-template-columns: 1fr 1fr; }
+  #goalCardsContainer.goal-cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .goal-card { display: block; width: 100%; text-align: left; cursor: pointer; margin-bottom: 0; }
   .goal-card:hover { border-color: var(--brand); }
   .goal-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch; margin-bottom: 1rem; }
   .chart-row .chart-card { margin-bottom: 0; }
-  @media (max-width: 980px) { .chart-row { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) {
+    .chart-row { grid-template-columns: 1fr; }
+    #goalCardsContainer.goal-cols-2, #goalCardsContainer.goal-cols-3 { grid-template-columns: 1fr; }
+  }
   .chart-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.6rem; }
   .chart-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
   .chart-body { position: relative; }
@@ -1879,6 +1892,13 @@ import {
     idea_created: ICON_LIGHTBULB, idea_updated: ICON_EDIT, idea_deleted: ICON_TRASH,
     idea_moved: ICON_ARROW_RIGHT, idea_feedback: ICON_MESSAGE
   };
+  // Color-codes each icon by action type (not by post-vs-idea) so the feed reads at a glance:
+  // green = created, brand orange = updated, red = deleted, blue = stage moved, indigo = feedback.
+  var ACTIVITY_ICON_CLASS = {
+    post_created: "act-created", post_updated: "act-updated", post_deleted: "act-deleted",
+    idea_created: "act-created", idea_updated: "act-updated", idea_deleted: "act-deleted",
+    idea_moved: "act-moved", idea_feedback: "act-feedback"
+  };
   function activityDateHeader(iso) {
     var d = new Date(iso);
     if (isNaN(d.getTime())) return "Unknown date";
@@ -1910,7 +1930,8 @@ import {
         lastGroup = groupKey;
       }
       var icon = ACTIVITY_ICONS[a.type] || ACTIVITY_ICON_DOT;
-      html += '<div class="activity-item"><span class="activity-icon">' + icon + '</span>' +
+      var iconClass = ACTIVITY_ICON_CLASS[a.type] || "";
+      html += '<div class="activity-item"><span class="activity-icon ' + iconClass + '">' + icon + '</span>' +
         '<div class="activity-body"><div class="activity-summary">' + escapeHtml(a.summary) + '</div>' +
         '<div class="activity-meta">' + escapeHtml(a.user || "unknown") + ' · ' + formatTimeOnly(a.at) + '</div></div></div>';
     });
@@ -4181,6 +4202,7 @@ import {
   function renderGoalCards() {
     var container = document.getElementById("goalCardsContainer");
     var valid = currentGoals.filter(function (g) { return g && g.metric && g.targetValue && g.targetDate && METRIC_DEFS[g.metric]; });
+    container.className = "goal-cols-" + Math.max(1, Math.min(3, valid.length));
     container.innerHTML = valid.map(renderOneGoalCard).join("");
     container.querySelectorAll(".goal-card").forEach(function (card) {
       card.addEventListener("click", function () { openGoalModal(card.dataset.metric); });
