@@ -493,8 +493,8 @@
   .analytics-head h2 { margin: 0; font-size: 1.15rem; font-weight: 700; }
   .analytics-sub { margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--text-soft); }
   #analyticsRange {
-    font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700;
-    color: var(--text); margin: 0.4rem 0 0.2rem; letter-spacing: 0.01em;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--text); margin: 0.4rem 0 0.2rem;
   }
   .sample-badge {
     display: inline-flex; align-items: center; gap: 0.35rem;
@@ -636,8 +636,9 @@
   .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
 
   #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0; }
-  #postForm label, #ideaForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
+  #postForm label, #ideaForm label, #goalForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
   #postForm .field-col, #ideaForm .field-col { display: flex; flex-direction: column; gap: 0.35rem; }
+  #goalForm { display: flex; flex-direction: column; gap: 0.9rem; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
   .form-section { display: flex; flex-direction: column; gap: 0.9rem; }
   .form-section + .form-section, .form-section + .modal-actions {
@@ -1372,13 +1373,15 @@
       A shared growth target for any metric, shown as a progress card on this tab for anyone signed in.
     </p>
     <form id="goalForm">
-      <label>Metric
-        <select id="goal-metric" required></select>
-      </label>
-      <label>Target value
-        <input type="number" id="goal-target-value" min="0" step="any" placeholder="e.g. 3000" required>
-      </label>
-      <p id="goalMetricHint" style="margin:-0.3rem 0 0;font-size:0.76rem;color:var(--text-faint);"></p>
+      <div class="field-row">
+        <label>Metric
+          <select id="goal-metric" required></select>
+        </label>
+        <label>Target value
+          <input type="number" id="goal-target-value" min="0" step="any" placeholder="e.g. 3000" required>
+        </label>
+      </div>
+      <p id="goalMetricHint" style="margin:-0.5rem 0 0;font-size:0.76rem;color:var(--text-faint);"></p>
       <label>Target date
         <input type="date" id="goal-target-date" required>
       </label>
