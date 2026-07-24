@@ -915,7 +915,14 @@
         <p class="analytics-sub" id="followerSourceNote"></p>
       </div>
       <div style="display:flex;gap:0.6rem;">
-        <button class="btn btn-ghost" id="editGoalBtn">🎯 Set Goal</button>
+        <button class="btn btn-ghost" id="editGoalBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <circle cx="12" cy="12" r="5"></circle>
+            <circle cx="12" cy="12" r="1"></circle>
+          </svg>
+          Set Goal
+        </button>
         <button class="btn btn-ghost" id="exportAnalyticsBtn">Export Analytics (JSON)</button>
         <button class="btn btn-ghost" id="importAnalyticsBtn">Import Analytics JSON</button>
       </div>
@@ -3606,7 +3613,18 @@ import {
       '<div class="kpi-value">' + value + '</div>' + deltaHtml + '</div>';
   }
 
-  function renderKpis(periods) {
+  // Labels a period bucket by its granularity so KPI deltas read as real dates
+  // instead of the generic "prior period" -- e.g. "vs week of Jul 6" or "vs Jul 23, 2026".
+  function kpiPeriodLabel(period, granularity) {
+    if (granularity === "month") {
+      var d = new Date(period.date + "T00:00:00Z");
+      return d.toLocaleDateString("en-SG", { month: "short", year: "numeric", timeZone: "UTC" });
+    }
+    if (granularity === "week") return "week of " + formatDateShort(period.date);
+    return formatDateShort(period.date);
+  }
+
+  function renderKpis(periods, granularity) {
     var latest = periods[periods.length - 1];
     var prev = periods.length > 1 ? periods[periods.length - 2] : null;
     var totalImpressions = periods.reduce(function (s, w) { return s + w.impressions; }, 0);
@@ -3614,12 +3632,17 @@ import {
     var totalReposts = periods.reduce(function (s, w) { return s + w.reposts; }, 0);
     var avgEngagement = periods.reduce(function (s, w) { return s + w.engagementRate; }, 0) / periods.length;
 
+    var priorCaption = prev ? "vs " + kpiPeriodLabel(prev, granularity) : "vs prior period";
+    var rangeCaption = periods.length > 1
+      ? "over " + formatDateShort(periods[0].date) + " – " + formatDateShort(latest.date)
+      : "over selected range";
+
     var tiles = [
-      kpiTile("Total Followers", formatNumber(latest.followers), prev ? latest.followers - prev.followers : null, "vs prior period", false),
-      kpiTile("Follower Growth", (totalGain >= 0 ? "+" : "") + formatNumber(totalGain), totalGain, "over selected range", false),
-      kpiTile("Total Impressions", formatNumber(totalImpressions), prev ? latest.impressions - prev.impressions : null, "latest vs prior period", false),
-      kpiTile("Avg. Engagement Rate", formatPercent(avgEngagement), prev ? latest.engagementRate - prev.engagementRate : null, "latest vs prior period", true),
-      kpiTile("Total Reposts", formatNumber(totalReposts), prev ? latest.reposts - prev.reposts : null, "latest vs prior period", false)
+      kpiTile("Total Followers", formatNumber(latest.followers), prev ? latest.followers - prev.followers : null, priorCaption, false),
+      kpiTile("Follower Growth", (totalGain >= 0 ? "+" : "") + formatNumber(totalGain), totalGain, rangeCaption, false),
+      kpiTile("Total Impressions", formatNumber(totalImpressions), prev ? latest.impressions - prev.impressions : null, priorCaption, false),
+      kpiTile("Avg. Engagement Rate", formatPercent(avgEngagement), prev ? latest.engagementRate - prev.engagementRate : null, priorCaption, true),
+      kpiTile("Total Reposts", formatNumber(totalReposts), prev ? latest.reposts - prev.reposts : null, priorCaption, false)
     ];
     document.getElementById("kpiRow").innerHTML = tiles.join("");
   }
@@ -3981,7 +4004,7 @@ import {
     if (!filtered.length) { currentPeriods = []; return; }
 
     currentPeriods = aggregateDays(filtered, state.granularity);
-    renderKpis(currentPeriods);
+    renderKpis(currentPeriods, state.granularity);
     renderTakeaways(currentPeriods);
     renderSuggestions(currentPeriods, state.topPosts || []);
     renderTrendChart(currentPeriods, currentMetric);
