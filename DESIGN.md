@@ -26,7 +26,11 @@ The Post and Idea modals are each broken into `.form-section` blocks (currently:
 
 ## Icons
 
-All icon-only buttons are inline SVG, not emoji or icon fonts: `stroke="currentColor"`, `fill="none"`, `stroke-width="1.8"` (bump to ~`2.6` only for small badge-style icons that need to read at a glance), `viewBox="0 0 24 24"`, rendered at `16x16`. Wrap them in `.icon-btn` (2.1rem square, 1px border, 8px radius, `--surface` background) for a clickable icon, or a variant like `.emoji-inline-btn` when it needs to sit inside/overlay another field.
+All icons in this app -- not just icon-only buttons, any status/type indicator too (activity feed, image-count badges, goal pace, link chips) -- are inline SVG, never emoji or an icon font. This was enforced retroactively in a full sweep; if you ever find a stray emoji being used as an icon, replace it the same way. Convention: `stroke="currentColor"`, `fill="none"`, `stroke-width="1.8"`–`2.4` (bump toward the higher end only for small badge-style icons that need to read at a glance), `viewBox="0 0 24 24"`, rendered at `16x16` for `.icon-btn` buttons or `12x12`–`14x14` for inline status icons. Wrap clickable icon-only buttons in `.icon-btn` (2.1rem square, 1px border, 8px radius, `--surface` background), or a variant like `.emoji-inline-btn` when it needs to sit inside/overlay another field.
+
+**Shared icon constants**: reusable icon markup lives as `var ICON_*` string constants (`ICON_X`, `ICON_X_SMALL`, `ICON_CHECK`, `ICON_CHECK_CIRCLE`, `ICON_ALERT_TRIANGLE`, `ICON_CALENDAR`, `ICON_EDIT`, `ICON_TRASH`, `ICON_LIGHTBULB`, `ICON_ARROW_RIGHT`, `ICON_MESSAGE`, `ICON_LINK`, `ICON_IMAGE`, `ACTIVITY_ICON_DOT`), defined together in one place right before `ACTIVITY_ICONS` (search "shared inline icons"). Reuse one of these for any new icon before drawing a new SVG from scratch. **Ordering gotcha**: these must stay declared *before* anything that builds an object/lookup out of them at module top-level (like `ACTIVITY_ICONS`) -- `var` hoisting only hoists the declaration, not the assignment, so referencing a not-yet-assigned `ICON_*` constant at module-init time silently evaluates to `undefined` (this exact bug shipped once: `ACTIVITY_ICONS` was built above the icon constants, so every activity type silently fell back to the dot icon). Using an `ICON_*` constant *inside* a function body is always safe regardless of where in the file that function is defined, since the function doesn't run until later, after all top-level vars are assigned.
+
+**Deliberate exceptions** (real emoji, left as-is on purpose -- don't "fix" these): the emoji picker's own category data (`EMOJI_CATEGORIES`) is the feature's content, not UI chrome. The LinkedIn post preview's action row (👍 Like / 💬 Comment / 🔁 Repost / ✈️ Send) is simulating LinkedIn's actual UI as accurately as possible, not our own app's iconography -- converting it to our monotone style would make the preview less accurate, not more consistent.
 
 ## Reusable input patterns
 
@@ -41,6 +45,14 @@ All icon-only buttons are inline SVG, not emoji or icon fonts: `stroke="currentC
 ## Tasks (removed from the UI, kept in the data)
 
 The assignable Tasks checklist (on both Post and Idea) was removed from the form for now, per direct feedback that it added clutter. The `tasks` field is still read on load and passed straight back through on save (`currentPostTasks` / `currentIdeaTasks` — plain variables, not editable) specifically so existing saved tasks aren't lost even though there's no editor for them. The `createTaskListInput()` factory is still defined but unused; re-adding the UI later is mostly restoring the HTML block removed from both forms and re-wiring those two variables back to the controller.
+
+## Growth goals (multi-goal)
+
+Goals live in a `goals` collection, **one document per metric, keyed by the metric name as the doc ID** (`goals/followers`, `goals/impressions`, etc.) — this is what makes "one active goal per metric" automatic: saving a goal for a metric is just `setDoc(doc(goalsCol, metric), {...})`, which always overwrites that metric's single doc, so duplicates are structurally impossible without extra validation code. Capped at `MAX_GOALS = 3` total, enforced at save time in the submit handler (checked against `currentGoals.length`, only when the save would *add* a new metric rather than edit an existing one) — there's no cap on the read/render side, so if that constant ever changes, existing over-the-old-cap data (there shouldn't be any) would still render fine.
+
+The Metric dropdown in the modal *is* the goal picker: selecting a metric loads whichever goal already exists for it (or blank fields if none), so there's a single form for both creating and editing rather than separate flows. Clicking a rendered `.goal-card` opens the modal pre-selected to that card's metric. The toolbar "Set Goal" button opens it defaulted to a metric that doesn't have a goal yet, so it naturally starts a new one instead of landing on an existing goal at random.
+
+There's a legacy `settings/goal` single-document goal that predates this (from before multi-goal support) — kept only for a one-time migration (see `goalsMigrationChecked`): the first time the `goals` collection snapshot comes back empty, it reads the legacy doc once and, if it has valid data, writes it into the new collection. Don't remove the legacy read path; it's what stops anyone's already-set goal from silently disappearing when this shipped.
 
 ## Schema changes
 

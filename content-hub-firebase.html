@@ -230,7 +230,7 @@
   .bucket-row .bucket-label { border: 1px solid transparent; background: transparent; padding: 0.35rem 0.4rem; border-radius: 6px; font-weight: 500; }
   .bucket-row .bucket-label:hover, .bucket-row .bucket-label:focus { border-color: var(--border); background: var(--surface-alt); }
   .bucket-row .bucket-count { font-size: 0.72rem; color: var(--text-faint); white-space: nowrap; }
-  .bucket-row .bucket-delete { width: 1.9rem; height: 1.9rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-faint); cursor: pointer; font-size: 0.85rem; }
+  .bucket-row .bucket-delete { width: 1.9rem; height: 1.9rem; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text-faint); cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .bucket-row .bucket-delete:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
   .bucket-row .bucket-delete.armed { background: var(--danger); color: #fff; border-color: var(--danger); font-size: 0.62rem; width: auto; padding: 0 0.5rem; }
 
@@ -430,7 +430,7 @@
   .kanban-empty { color: var(--text-faint); font-size: 0.78rem; padding: 0.4rem 0.2rem; }
   .activity-feed { display: flex; flex-direction: column; gap: 0.5rem; }
   .activity-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 0.9rem; box-shadow: var(--shadow-sm); display: flex; align-items: flex-start; gap: 0.6rem; }
-  .activity-icon { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
+  .activity-icon { display: inline-flex; align-items: center; line-height: 1; flex-shrink: 0; color: var(--text-faint); }
   .activity-body { flex: 1; min-width: 0; }
   .activity-summary { font-size: 0.86rem; color: var(--text); font-weight: 600; }
   .activity-meta { font-size: 0.72rem; color: var(--text-faint); margin-top: 0.15rem; }
@@ -559,6 +559,9 @@
 
   /* ---------- chart cards ---------- */
   .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.2rem 0.9rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+  .goal-card { display: block; width: 100%; text-align: left; cursor: pointer; }
+  .goal-card:hover { border-color: var(--brand); }
+  .goal-card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: stretch; margin-bottom: 1rem; }
   .chart-row .chart-card { margin-bottom: 0; }
   @media (max-width: 980px) { .chart-row { grid-template-columns: 1fr; } }
@@ -796,7 +799,7 @@
             </svg>
             <span id="quickLinkLabel"></span>
           </a>
-          <button type="button" class="quick-link-edit" id="editQuickLinkBtn" aria-label="Edit quick link" title="Edit quick link">✎</button>
+          <button type="button" class="quick-link-edit" id="editQuickLinkBtn" aria-label="Edit quick link" title="Edit quick link"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
         </p>
       </div>
     </div>
@@ -943,10 +946,7 @@
 
     <div class="kpi-row" id="kpiRow"></div>
 
-    <div class="chart-card" id="goalCard" hidden>
-      <div class="chart-head"><h3>Growth Goal</h3></div>
-      <div id="goalContent"></div>
-    </div>
+    <div id="goalCardsContainer"></div>
 
     <div class="chart-row">
       <div class="chart-card">
@@ -1072,7 +1072,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportAnalyticsTitle">
     <div class="modal-head">
       <h3 id="exportAnalyticsTitle">Export Analytics (JSON)</h3>
-      <button class="icon-btn" id="exportAnalyticsClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="exportAnalyticsClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
       Everything currently loaded in this tab — daily data, top posts, follower demographics, and your
@@ -1096,7 +1096,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importAnalyticsTitle">
     <div class="modal-head">
       <h3 id="importAnalyticsTitle">Import Analytics (JSON)</h3>
-      <button class="icon-btn" id="importAnalyticsClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="importAnalyticsClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
       Paste JSON from <code style="font-family:var(--font-mono);">python agent/import_linkedin_xls.py</code>
@@ -1120,7 +1120,7 @@
   <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
       <h3 id="modalTitle">New Post</h3>
-      <button class="icon-btn" id="modalClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="modalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p class="last-edited-note" id="postLastEdited" hidden></p>
     <form id="postForm">
@@ -1239,7 +1239,7 @@
   <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
     <div class="modal-head">
       <h3 id="ideaModalTitle">New Idea</h3>
-      <button class="icon-btn" id="ideaModalClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="ideaModalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p class="last-edited-note" id="ideaLastEdited" hidden></p>
     <form id="ideaForm">
@@ -1323,7 +1323,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="bucketsTitle">
     <div class="modal-head">
       <h3 id="bucketsTitle">Manage Content Buckets</h3>
-      <button class="icon-btn" id="bucketsClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="bucketsClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
       Rename, recolor, add, or remove buckets. Deleting a bucket moves any posts using it to the first remaining bucket.
@@ -1341,7 +1341,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="quickLinkModalTitle">
     <div class="modal-head">
       <h3 id="quickLinkModalTitle">Edit Quick Link</h3>
-      <button class="icon-btn" id="quickLinkModalClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="quickLinkModalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
       A shared shortcut shown under the page title, for anyone signed in. Point it at anything useful --
@@ -1367,7 +1367,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="goalModalTitle">
     <div class="modal-head">
       <h3 id="goalModalTitle">Set Growth Goal</h3>
-      <button class="icon-btn" id="goalModalClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="goalModalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.8rem;font-size:0.82rem;color:var(--text-soft);">
       A shared growth target for any metric, shown as a progress card on this tab for anyone signed in.
@@ -1399,7 +1399,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
     <div class="modal-head">
       <h3 id="exportTitle">Export Calendar (JSON)</h3>
-      <button class="icon-btn" id="exportClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="exportClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <textarea id="exportText" readonly></textarea>
     <p style="margin:0.5rem 0 0;font-size:0.76rem;color:var(--text-faint);">
@@ -1418,7 +1418,7 @@
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="importTitle">
     <div class="modal-head">
       <h3 id="importTitle">Import Calendar (JSON)</h3>
-      <button class="icon-btn" id="importClose" aria-label="Close">✕</button>
+      <button class="icon-btn" id="importClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p style="margin:0 0 0.7rem;font-size:0.82rem;color:var(--text-soft);">
       Paste JSON from this dashboard's own <strong>Export Calendar (JSON)</strong> (includes your bucket
@@ -1443,7 +1443,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, connectAuthEmulator
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, writeBatch, arrayUnion,
+  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, getDoc, onSnapshot, writeBatch, arrayUnion,
   connectFirestoreEmulator, query, orderBy, limit
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1482,7 +1482,8 @@ import {
   var analyticsDocRef = doc(db, "analytics", "current");
   var activityCol = collection(db, "activity");
   var quickLinkDocRef = doc(db, "settings", "quickLink");
-  var goalDocRef = doc(db, "settings", "goal");
+  var goalDocRef = doc(db, "settings", "goal"); // legacy single-goal doc, kept only for one-time migration
+  var goalsCol = collection(db, "goals");
   var activityQuery = query(activityCol, orderBy("at", "desc"), limit(50));
 
   function logActivity(type, summary) {
@@ -1557,7 +1558,8 @@ import {
   topbarSignOutBtn.addEventListener("click", doSignOut);
 
   var unsubPosts = null, unsubBuckets = null, unsubIdeas = null, unsubAnalytics = null, unsubActivity = null, unsubQuickLink = null, unsubGoal = null;
-  var currentGoal = null;
+  var currentGoals = [];
+  var goalsMigrationChecked = false;
   var ideasSeeded = false, postsSeeded = false;
   var activityLog = [];
 
@@ -1650,9 +1652,20 @@ import {
       renderQuickLink(snap.data());
     }, function (err) { console.error("quick link listener error", err); });
 
-    unsubGoal = onSnapshot(goalDocRef, function (snap) {
-      currentGoal = snap.exists() ? snap.data() : null;
-      renderGoalCard();
+    unsubGoal = onSnapshot(goalsCol, function (snap) {
+      if (snap.empty && !goalsMigrationChecked) {
+        goalsMigrationChecked = true;
+        // One-time migration from the old single shared goal doc (settings/goal) to the new
+        // one-goal-per-metric collection, so nobody's already-set goal quietly disappears.
+        getDoc(goalDocRef).then(function (legacySnap) {
+          var legacy = legacySnap.exists() ? normalizedGoal(legacySnap.data()) : null;
+          if (legacy && legacy.metric && legacy.targetValue && legacy.targetDate) {
+            setDoc(doc(goalsCol, legacy.metric), legacy).catch(function (e) { console.error("Failed to migrate legacy goal", e); });
+          }
+        }).catch(function (e) { console.error("Failed to check legacy goal", e); });
+      }
+      currentGoals = snap.docs.map(function (d) { return normalizedGoal(Object.assign({ id: d.id }, d.data())); }).filter(Boolean);
+      renderGoalCards();
     }, function (err) { console.error("goal listener error", err); });
   }
 
@@ -1830,11 +1843,33 @@ import {
     });
   });
 
+  // ---------- shared inline icons ----------
+  // Per the icon guideline: every icon in this app is inline monotone SVG (stroke="currentColor",
+  // fill="none"), never emoji or an icon font. Reuse these constants for any new status icon
+  // rather than adding a fresh emoji -- add new ones here in the same style if none of these fit.
+  // NOTE: must be declared before anything that builds an object/lookup out of them at module init
+  // time (e.g. ACTIVITY_ICONS below) -- var hoisting only hoists the declaration, not the value, so
+  // referencing one of these before its assignment line runs silently yields undefined.
+  var ICON_CHECK_CIRCLE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.35rem;vertical-align:-2px;flex-shrink:0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  var ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.35rem;vertical-align:-2px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+  var ICON_ALERT_TRIANGLE = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.35rem;vertical-align:-2px;flex-shrink:0;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  var ICON_X = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  var ICON_X_SMALL = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  var ICON_CALENDAR = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>';
+  var ICON_EDIT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+  var ICON_TRASH = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+  var ICON_LIGHTBULB = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A6 6 0 1 0 8 11.5c.76.76 1.23 1.52 1.41 2.5"></path></svg>';
+  var ICON_ARROW_RIGHT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>';
+  var ICON_MESSAGE = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>';
+  var ICON_LINK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.2rem;vertical-align:-1px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+  var ICON_IMAGE = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-right:0.2rem;vertical-align:-1px;"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg>';
+  var ACTIVITY_ICON_DOT = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle></svg>';
+
   // ---------- activity feed ----------
   var ACTIVITY_ICONS = {
-    post_created: "🗓️", post_updated: "✏️", post_deleted: "🗑️",
-    idea_created: "💡", idea_updated: "✏️", idea_deleted: "🗑️",
-    idea_moved: "➡️", idea_feedback: "💬"
+    post_created: ICON_CALENDAR, post_updated: ICON_EDIT, post_deleted: ICON_TRASH,
+    idea_created: ICON_LIGHTBULB, idea_updated: ICON_EDIT, idea_deleted: ICON_TRASH,
+    idea_moved: ICON_ARROW_RIGHT, idea_feedback: ICON_MESSAGE
   };
   function activityDateHeader(iso) {
     var d = new Date(iso);
@@ -1866,7 +1901,7 @@ import {
         html += '<div class="activity-date-header">' + activityDateHeader(a.at) + '</div>';
         lastGroup = groupKey;
       }
-      var icon = ACTIVITY_ICONS[a.type] || "•";
+      var icon = ACTIVITY_ICONS[a.type] || ACTIVITY_ICON_DOT;
       html += '<div class="activity-item"><span class="activity-icon">' + icon + '</span>' +
         '<div class="activity-body"><div class="activity-summary">' + escapeHtml(a.summary) + '</div>' +
         '<div class="activity-meta">' + escapeHtml(a.user || "unknown") + ' · ' + formatTimeOnly(a.at) + '</div></div></div>';
@@ -1888,6 +1923,7 @@ import {
   function escapeHtml(s) {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
+
   function formatTime12(t) {
     var parts = t.split(":"); var h = parseInt(parts[0], 10); var m = parts[1];
     var suffix = h >= 12 ? "pm" : "am"; var h12 = h % 12; if (h12 === 0) h12 = 12;
@@ -1923,7 +1959,7 @@ import {
     function render() {
       chipsEl.innerHTML = owners.map(function (name, i) {
         return '<span class="owner-chip">' + avatarHtml(name, "small") + escapeHtml(name) +
-          '<button type="button" class="owner-chip-remove" data-i="' + i + '" aria-label="Remove ' + escapeHtml(name) + '">✕</button></span>';
+          '<button type="button" class="owner-chip-remove" data-i="' + i + '" aria-label="Remove ' + escapeHtml(name) + '">' + ICON_X_SMALL + '</button></span>';
       }).join("");
       if (onChange) onChange();
     }
@@ -1961,7 +1997,7 @@ import {
               '<input type="checkbox" class="task-done-checkbox" data-task-id="' + t.id + '"' + (t.done ? " checked" : "") + '>' +
               '<span class="task-text' + (t.done ? " done" : "") + '">' + escapeHtml(t.text) + '</span>' +
               (t.assignee ? avatarHtml(t.assignee, "small") : "") +
-              '<button type="button" class="task-remove" data-task-id="' + t.id + '" aria-label="Remove task">✕</button>' +
+              '<button type="button" class="task-remove" data-task-id="' + t.id + '" aria-label="Remove task">' + ICON_X_SMALL + '</button>' +
               '</div>';
           }).join("")
         : '<p class="task-empty">No tasks yet.</p>';
@@ -2273,7 +2309,7 @@ import {
     btn.draggable = true;
     btn.style.setProperty("--dot", bucketColorFor(post.bucket));
     var photoCount = (post.images || []).filter(function (u) { return !isDriveFolderLink(u); }).length;
-    var imgBadge = photoCount ? '<span class="pc-img-badge">🖼️ ' + photoCount + '</span>' : '';
+    var imgBadge = photoCount ? '<span class="pc-img-badge">' + ICON_IMAGE + photoCount + '</span>' : '';
     var legacyImgBadge = hasLegacyEmbeddedImage(post) && isPostNeedsAttention(post)
       ? '<span class="pc-legacy-img" title="Includes an old embedded image saved before links were supported -- quality is reduced. Open the post and replace it with a link for full quality.">' +
         '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -2380,14 +2416,14 @@ import {
           '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path>' +
           '</svg></a>' +
-          '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">✕</button>' +
+          '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove link">' + ICON_X_SMALL + '</button>' +
           '</div>';
       }
       var legacy = isLegacyEmbeddedImage(url);
       return '<div class="image-thumb' + (legacy ? " legacy" : "") + '" data-i="' + i + '" draggable="true"' +
         (legacy ? ' title="Saved before links were supported -- quality is reduced. Remove and re-add as a link for full quality."' : '') + '>' +
         '<img src="' + escapeHtml(url) + '" alt="Post image" draggable="false">' +
-        '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">✕</button>' +
+        '<button type="button" class="image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
     postImageGridEl.querySelectorAll("img").forEach(function (img) {
@@ -2804,7 +2840,7 @@ import {
     ideaImageGridEl.innerHTML = currentIdeaImages.map(function (url, i) {
       return '<div class="idea-image-thumb" data-i="' + i + '">' +
         '<img src="' + escapeHtml(url) + '" alt="Idea reference image">' +
-        '<button type="button" class="idea-image-remove" data-i="' + i + '" aria-label="Remove image">✕</button>' +
+        '<button type="button" class="idea-image-remove" data-i="' + i + '" aria-label="Remove image">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
     ideaImageGridEl.querySelectorAll("img").forEach(function (img) {
@@ -2842,7 +2878,7 @@ import {
     notesLinksEl.innerHTML = urls.map(function (u) {
       var label = u;
       try { label = new URL(u).hostname.replace(/^www\./, ""); } catch (e) {}
-      return '<a class="notes-link-chip" href="' + escapeHtml(u) + '" target="_blank" rel="noopener noreferrer" title="' + escapeHtml(u) + '">🔗 ' + escapeHtml(label) + ' ↗</a>';
+      return '<a class="notes-link-chip" href="' + escapeHtml(u) + '" target="_blank" rel="noopener noreferrer" title="' + escapeHtml(u) + '">' + ICON_LINK + escapeHtml(label) + ' ↗</a>';
     }).join("");
   }
   iNotes.addEventListener("input", renderNotesLinks);
@@ -2868,7 +2904,7 @@ import {
             return '<button type="button" class="idea-card' + (stale ? ' needs-attention' : '') + '" draggable="true" data-id="' + idea.id + '" style="--dot:' + bucketColorFor(idea.bucket) + '">' +
               headBlock +
               (idea.notes ? '<span class="ic-notes">' + escapeHtml(idea.notes) + '</span>' : '') +
-              (latestFb ? '<span class="ic-feedback">💬 ' + escapeHtml(latestFb.text) + '</span>' : '') +
+              (latestFb ? '<span class="ic-feedback">' + ICON_MESSAGE + ' ' + escapeHtml(latestFb.text) + '</span>' : '') +
               '<span class="ic-meta">' + escapeHtml(bucketLabelFor(idea.bucket)) +
               (ideaOwners.length ? ' · ' + ideaOwners.map(function (o) { return avatarHtml(o, "small"); }).join("") : '') +
               (fb.length ? ' · ' + fb.length + ' round' + (fb.length > 1 ? 's' : '') : '') + '</span>' +
@@ -3111,7 +3147,7 @@ import {
         '<input type="color" class="bucket-color" value="' + b.color + '" aria-label="Color for ' + escapeHtml(b.label) + '">' +
         '<input type="text" class="bucket-label" value="' + escapeHtml(b.label) + '" aria-label="Bucket name">' +
         '<span class="bucket-count">' + count + ' post' + (count === 1 ? "" : "s") + '</span>' +
-        '<button type="button" class="bucket-delete" aria-label="Delete bucket">✕</button>' +
+        '<button type="button" class="bucket-delete" aria-label="Delete bucket">' + ICON_X_SMALL + '</button>' +
         '</div>';
     }).join("");
   }
@@ -3994,7 +4030,7 @@ import {
 
     renderTopPosts(state.topPosts || [], state);
     renderDemographics(state.followerDemographics || {});
-    renderGoalCard();
+    renderGoalCards();
 
     if (!filtered.length) { currentPeriods = []; return; }
 
@@ -4086,57 +4122,61 @@ import {
     return sum / recent.length;
   }
 
-  function renderGoalCard() {
-    var goalCard = document.getElementById("goalCard");
-    var goalContent = document.getElementById("goalContent");
-    var goal = normalizedGoal(currentGoal);
-    if (!goal || !goal.metric || !goal.targetValue || !goal.targetDate) {
-      goalCard.hidden = true;
-      return;
-    }
+  function renderOneGoalCard(goal) {
     var def = METRIC_DEFS[goal.metric];
-    if (!def) { goalCard.hidden = true; return; }
-    goalCard.hidden = false;
-    goalCard.querySelector(".chart-head h3").textContent = def.label + " Goal";
-
+    if (!def) return "";
     var state = loadAnalytics();
     var current = getGoalCurrentValue(state, goal.metric);
+    var body;
     if (current === null) {
-      goalContent.innerHTML = '<p class="goal-empty">Not enough data yet to track progress toward this goal.</p>';
-      return;
-    }
-    var target = goal.targetValue;
-    var pct = target > 0 ? Math.max(0, Math.min(100, (current / target) * 100)) : 0;
-    var today = new Date(); today.setHours(0, 0, 0, 0);
-    var targetDate = new Date(goal.targetDate + "T00:00:00");
-    var daysLeft = Math.round((targetDate - today) / 86400000);
-
-    var paceHtml;
-    if (def.kind === "rate") {
-      paceHtml = current >= target
-        ? '<div class="goal-pace good">🎉 Target reached!</div>'
-        : '<div class="goal-pace bad">Currently ' + def.format(current) + ' vs a target of ' + def.format(target) + '.</div>';
+      body = '<p class="goal-empty">Not enough data yet to track progress toward this goal.</p>';
     } else {
-      var dailyRate = getGoalDailyRate(state, goal.metric);
-      var neededDaily = daysLeft > 0 ? (target - current) / daysLeft : (current >= target ? 0 : Infinity);
-      var onTrack = current >= target || (daysLeft > 0 && dailyRate >= neededDaily);
-      paceHtml = current >= target
-        ? '<div class="goal-pace good">🎉 Goal reached!</div>'
-        : daysLeft <= 0
-          ? '<div class="goal-pace bad">Target date has passed and the goal wasn\'t reached.</div>'
-          : '<div class="goal-pace ' + (onTrack ? "good" : "bad") + '">' + (onTrack ? "✓ On track" : "⚠ Behind pace") +
-            ' — need ~' + def.format(neededDaily) + '/day, currently at ~' + def.format(dailyRate) + '/day</div>';
-    }
+      var target = goal.targetValue;
+      var pct = target > 0 ? Math.max(0, Math.min(100, (current / target) * 100)) : 0;
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var targetDate = new Date(goal.targetDate + "T00:00:00");
+      var daysLeft = Math.round((targetDate - today) / 86400000);
 
-    goalContent.innerHTML =
-      '<div class="goal-stats">' +
-      '<div class="mini-stat"><span class="mini-stat-label">Current</span><span class="mini-stat-value">' + def.format(current) + '</span></div>' +
-      '<div class="mini-stat"><span class="mini-stat-label">Target</span><span class="mini-stat-value">' + def.format(target) + '</span></div>' +
-      '<div class="mini-stat"><span class="mini-stat-label">Target date</span><span class="mini-stat-value">' + formatDateShort(goal.targetDate) + '</span></div>' +
-      '<div class="mini-stat"><span class="mini-stat-label">Days left</span><span class="mini-stat-value">' + Math.max(0, daysLeft) + '</span></div>' +
-      '</div>' +
-      '<div class="goal-track"><div class="goal-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
-      paceHtml;
+      var paceHtml;
+      if (def.kind === "rate") {
+        paceHtml = current >= target
+          ? '<div class="goal-pace good">' + ICON_CHECK_CIRCLE + 'Target reached!</div>'
+          : '<div class="goal-pace bad">Currently ' + def.format(current) + ' vs a target of ' + def.format(target) + '.</div>';
+      } else {
+        var dailyRate = getGoalDailyRate(state, goal.metric);
+        var neededDaily = daysLeft > 0 ? (target - current) / daysLeft : (current >= target ? 0 : Infinity);
+        var onTrack = current >= target || (daysLeft > 0 && dailyRate >= neededDaily);
+        paceHtml = current >= target
+          ? '<div class="goal-pace good">' + ICON_CHECK_CIRCLE + 'Goal reached!</div>'
+          : daysLeft <= 0
+            ? '<div class="goal-pace bad">Target date has passed and the goal wasn\'t reached.</div>'
+            : '<div class="goal-pace ' + (onTrack ? "good" : "bad") + '">' + (onTrack ? ICON_CHECK + "On track" : ICON_ALERT_TRIANGLE + "Behind pace") +
+              ' — need ~' + def.format(neededDaily) + '/day, currently at ~' + def.format(dailyRate) + '/day</div>';
+      }
+
+      body =
+        '<div class="goal-stats">' +
+        '<div class="mini-stat"><span class="mini-stat-label">Current</span><span class="mini-stat-value">' + def.format(current) + '</span></div>' +
+        '<div class="mini-stat"><span class="mini-stat-label">Target</span><span class="mini-stat-value">' + def.format(target) + '</span></div>' +
+        '<div class="mini-stat"><span class="mini-stat-label">Target date</span><span class="mini-stat-value">' + formatDateShort(goal.targetDate) + '</span></div>' +
+        '<div class="mini-stat"><span class="mini-stat-label">Days left</span><span class="mini-stat-value">' + Math.max(0, daysLeft) + '</span></div>' +
+        '</div>' +
+        '<div class="goal-track"><div class="goal-fill" style="width:' + pct.toFixed(1) + '%"></div></div>' +
+        paceHtml;
+    }
+    return '<button type="button" class="chart-card goal-card" data-metric="' + goal.metric + '">' +
+      '<div class="chart-head"><h3>' + def.label + ' Goal</h3></div>' +
+      body +
+      '</button>';
+  }
+
+  function renderGoalCards() {
+    var container = document.getElementById("goalCardsContainer");
+    var valid = currentGoals.filter(function (g) { return g && g.metric && g.targetValue && g.targetDate && METRIC_DEFS[g.metric]; });
+    container.innerHTML = valid.map(renderOneGoalCard).join("");
+    container.querySelectorAll(".goal-card").forEach(function (card) {
+      card.addEventListener("click", function () { openGoalModal(card.dataset.metric); });
+    });
   }
 
   var goalBackdrop = document.getElementById("goalBackdrop");
@@ -4144,6 +4184,7 @@ import {
   var goalMetricSelect = document.getElementById("goal-metric");
   var goalTargetValueInput = document.getElementById("goal-target-value");
   var goalMetricHint = document.getElementById("goalMetricHint");
+  var goalClearBtn = document.getElementById("goalClearBtn");
   goalMetricSelect.innerHTML = Object.keys(METRIC_DEFS).map(function (key) {
     return '<option value="' + key + '">' + METRIC_DEFS[key].label + '</option>';
   }).join("");
@@ -4162,21 +4203,37 @@ import {
     goalBackdrop.classList.remove("open");
     if (goalLastFocused && typeof goalLastFocused.focus === "function") goalLastFocused.focus();
   }
-  document.getElementById("editGoalBtn").addEventListener("click", function () {
-    goalLastFocused = document.activeElement;
-    var goal = normalizedGoal(currentGoal);
-    var metric = goal ? goal.metric : "followers";
-    goalMetricSelect.value = metric;
+  // Metric selection *is* the goal picker: each metric has at most one goal (its Firestore doc ID),
+  // so switching the dropdown just loads whichever goal already exists for that metric (or blanks
+  // the fields for a brand-new one). Called both from the toolbar button and from clicking a card.
+  function loadGoalFieldsForMetric(metric) {
+    var goal = currentGoals.find(function (g) { return g.metric === metric; });
     var def = METRIC_DEFS[metric];
     var rawValue = goal ? goal.targetValue : "";
     goalTargetValueInput.value = rawValue === "" ? "" : (def && def.kind === "rate" ? (rawValue * 100) : rawValue);
     document.getElementById("goal-target-date").value = goal ? goal.targetDate : "";
+    goalClearBtn.hidden = !goal;
+  }
+  goalMetricSelect.addEventListener("change", function () {
     updateGoalMetricHint();
+    loadGoalFieldsForMetric(goalMetricSelect.value);
+  });
+  function openGoalModal(metric) {
+    goalLastFocused = document.activeElement;
+    // Opening fresh (not from clicking an existing card): default to a metric that doesn't
+    // already have a goal, so "Set Goal" naturally starts a new one instead of editing one at random.
+    var metricKeys = Object.keys(METRIC_DEFS);
+    var unusedMetric = metricKeys.find(function (k) { return !currentGoals.some(function (g) { return g.metric === k; }); });
+    goalMetricSelect.value = metric || unusedMetric || metricKeys[0];
+    updateGoalMetricHint();
+    loadGoalFieldsForMetric(goalMetricSelect.value);
     goalBackdrop.classList.add("open");
     goalBackdrop.setAttribute("aria-hidden", "false");
-  });
+  }
+  document.getElementById("editGoalBtn").addEventListener("click", function () { openGoalModal(null); });
   document.getElementById("goalModalClose").addEventListener("click", closeGoalModal);
   document.getElementById("goalCancelBtn").addEventListener("click", closeGoalModal);
+  var MAX_GOALS = 3;
   document.getElementById("goalForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var metric = goalMetricSelect.value;
@@ -4184,13 +4241,19 @@ import {
     var rawInput = parseFloat(goalTargetValueInput.value);
     var date = document.getElementById("goal-target-date").value;
     if (!metric || isNaN(rawInput) || !rawInput || !date) return;
+    var isNewGoal = !currentGoals.some(function (g) { return g.metric === metric; });
+    if (isNewGoal && currentGoals.length >= MAX_GOALS) {
+      alert("You can have up to " + MAX_GOALS + " goals at a time -- clear one first to add another.");
+      return;
+    }
     var targetValue = def && def.kind === "rate" ? rawInput / 100 : rawInput;
-    setDoc(goalDocRef, { metric: metric, targetValue: targetValue, targetDate: date }).then(function () {
+    setDoc(doc(goalsCol, metric), { metric: metric, targetValue: targetValue, targetDate: date }).then(function () {
       closeGoalModal();
     }).catch(function (err) { alert("Couldn't save goal: " + err.message); });
   });
-  document.getElementById("goalClearBtn").addEventListener("click", function () {
-    setDoc(goalDocRef, {}).then(function () {
+  goalClearBtn.addEventListener("click", function () {
+    var metric = goalMetricSelect.value;
+    deleteDoc(doc(goalsCol, metric)).then(function () {
       closeGoalModal();
     }).catch(function (err) { alert("Couldn't clear goal: " + err.message); });
   });
