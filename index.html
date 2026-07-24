@@ -271,6 +271,10 @@
   .goal-pace { margin-top: 0.6rem; font-size: 0.82rem; font-weight: 600; }
   .goal-pace.good { color: var(--good); }
   .goal-pace.bad { color: var(--bad); }
+  .textarea-emoji-wrap { position: relative; }
+  .textarea-emoji-wrap textarea { display: block; width: 100%; padding-right: 2.9rem; }
+  .emoji-inline-btn { position: absolute; right: 0.5rem; bottom: 0.5rem; width: 1.9rem; height: 1.9rem; background: var(--surface); }
+  .textarea-emoji-wrap .emoji-picker { position: absolute; right: 0.5rem; bottom: 2.7rem; z-index: 20; width: 15.5rem; box-shadow: var(--shadow-sm); }
   .emoji-picker { margin-top: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-alt); padding: 0.55rem; }
   .emoji-tabs { display: flex; flex-wrap: wrap; gap: 0.2rem; margin-bottom: 0.45rem; }
   .emoji-tab { border: none; background: transparent; padding: 0.28rem 0.55rem; border-radius: 6px; cursor: pointer; font-size: 0.7rem; font-weight: 600; color: var(--text-soft); }
@@ -464,7 +468,7 @@
   .feedback-item .fb-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem; }
   .feedback-item .fb-date { font-size: 0.65rem; color: var(--text-faint); font-family: var(--font-mono); }
   .feedback-empty { color: var(--text-faint); font-size: 0.8rem; }
-  .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; margin: 0.2rem 0 0.9rem; }
+  .idea-stage-row { display: flex; align-items: center; gap: 0.6rem; }
   .idea-stage-row label { flex: 1; }
   .feedback-input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
   .feedback-input-row textarea { flex: 1; min-height: 3.4rem; }
@@ -614,10 +618,18 @@
   .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
 
-  #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0.9rem; }
+  #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0; }
   #postForm label, #ideaForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
   #postForm .field-col, #ideaForm .field-col { display: flex; flex-direction: column; gap: 0.35rem; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+  .form-section { display: flex; flex-direction: column; gap: 0.9rem; }
+  .form-section-label {
+    margin: 0; font-size: 0.68rem; font-weight: 700; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .form-section + .form-section, .form-section + .modal-actions {
+    margin-top: 1.3rem; padding-top: 1.1rem; border-top: 1px solid var(--border);
+  }
   input, select, textarea {
     border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.65rem;
     background: var(--surface-alt); color: var(--text); font-weight: 400; font-size: 0.85rem;
@@ -1066,100 +1078,114 @@
     </div>
     <p class="last-edited-note" id="postLastEdited" hidden></p>
     <form id="postForm">
-      <label>Post Title / Working Headline
-        <input type="text" id="f-title" placeholder="e.g. How we choreographed a 3-market product launch" required>
-      </label>
-      <div class="field-row">
-        <label>Content Bucket
-          <select id="f-bucket" required></select>
+      <div class="form-section">
+        <p class="form-section-label">Details</p>
+        <label>Post Title / Working Headline
+          <input type="text" id="f-title" placeholder="e.g. How we choreographed a 3-market product launch" required>
         </label>
-        <label>Status
-          <select id="f-status">
-            <option value="draft">Draft</option>
-            <option value="approved">Approved</option>
-            <option value="scheduled">Scheduled</option>
-          </select>
-        </label>
-      </div>
-      <div class="field-col">
-        <label for="f-owner-input">Owners (optional)</label>
-        <div class="owner-input-row">
-          <input type="text" id="f-owner-input" placeholder="Add an owner..." list="ownerNamesList">
-          <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
+        <div class="field-row">
+          <label>Content Bucket
+            <select id="f-bucket" required></select>
+          </label>
+          <label>Status
+            <select id="f-status">
+              <option value="draft">Draft</option>
+              <option value="approved">Approved</option>
+              <option value="scheduled">Scheduled</option>
+            </select>
+          </label>
         </div>
-        <div class="owner-chip-list" id="postOwnerChips"></div>
-      </div>
-      <div class="field-col">
-        <label>Tasks</label>
-        <div class="task-list" id="postTaskList"></div>
-        <div class="task-add-row">
-          <input type="text" id="f-task-input" placeholder="Add a task...">
-          <select id="f-task-assignee"><option value="">Assign to...</option></select>
-          <button type="button" class="btn btn-ghost small" id="addPostTaskBtn">Add</button>
+        <div class="field-row">
+          <label>Scheduled Date
+            <input type="date" id="f-date" required>
+          </label>
+          <label>Time
+            <input type="time" id="f-time" value="09:00">
+          </label>
         </div>
       </div>
-      <div class="field-row">
-        <label>Scheduled Date
-          <input type="date" id="f-date" required>
-        </label>
-        <label>Time
-          <input type="time" id="f-time" value="09:00">
-        </label>
+
+      <div class="form-section">
+        <p class="form-section-label">People &amp; Tasks</p>
+        <div class="field-col">
+          <label for="f-owner-input">Owners (optional)</label>
+          <div class="owner-input-row">
+            <input type="text" id="f-owner-input" placeholder="Add an owner..." list="ownerNamesList">
+            <button type="button" class="btn btn-ghost small" id="addPostOwnerBtn">Add</button>
+          </div>
+          <div class="owner-chip-list" id="postOwnerChips"></div>
+        </div>
+        <div class="field-col">
+          <label>Tasks</label>
+          <div class="task-list" id="postTaskList"></div>
+          <div class="task-add-row">
+            <input type="text" id="f-task-input" placeholder="Add a task...">
+            <select id="f-task-assignee"><option value="">Assign to...</option></select>
+            <button type="button" class="btn btn-ghost small" id="addPostTaskBtn">Add</button>
+          </div>
+        </div>
       </div>
-      <div class="field-col">
-        <div class="field-with-action">
-          <label for="f-copy">Post Copy / Draft Text</label>
-          <div style="display:flex;align-items:center;gap:0.6rem;">
-            <span class="char-counter" id="copyCharCount">0 / 3000</span>
-            <button type="button" class="icon-btn" id="postPreviewToggleBtn" aria-expanded="false" aria-controls="postPreviewPanel" aria-label="Preview as LinkedIn post" title="Preview as LinkedIn post">
+
+      <div class="form-section">
+        <p class="form-section-label">Content</p>
+        <div class="field-col">
+          <div class="field-with-action">
+            <label for="f-copy">Post Copy / Draft Text</label>
+            <div style="display:flex;align-items:center;gap:0.6rem;">
+              <span class="char-counter" id="copyCharCount">0 / 3000</span>
+              <button type="button" class="icon-btn" id="postPreviewToggleBtn" aria-expanded="false" aria-controls="postPreviewPanel" aria-label="Preview as LinkedIn post" title="Preview as LinkedIn post">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="textarea-emoji-wrap">
+            <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
+            <button type="button" class="icon-btn emoji-inline-btn" id="emojiToggleBtn" aria-expanded="false" aria-controls="emojiPicker" aria-label="Insert emoji" title="Insert emoji">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
               </svg>
             </button>
-            <button type="button" class="icon-btn" id="emojiToggleBtn" aria-expanded="false" aria-controls="emojiPicker" aria-label="Insert emoji">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="9"></circle>
-              <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-              <line x1="9" y1="9" x2="9.01" y2="9"></line>
-              <line x1="15" y1="9" x2="15.01" y2="9"></line>
-            </svg>
-            </button>
+            <div class="emoji-picker" id="emojiPicker" hidden>
+              <div class="emoji-tabs" id="emojiTabs" role="tablist" aria-label="Emoji categories"></div>
+              <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
           </div>
         </div>
-        <textarea id="f-copy" placeholder="Write the LinkedIn post draft here..."></textarea>
-      </div>
-      <div class="li-preview" id="postPreviewPanel" hidden>
-        <div class="li-preview-head">
-          <span class="logo-mark">MS</span>
-          <div>
-            <div class="li-preview-name">MediaShock APAC</div>
-            <div class="li-preview-meta">Corporate video &amp; event storytelling · Just now</div>
+        <div class="li-preview" id="postPreviewPanel" hidden>
+          <div class="li-preview-head">
+            <span class="logo-mark">MS</span>
+            <div>
+              <div class="li-preview-name">MediaShock APAC</div>
+              <div class="li-preview-meta">Corporate video &amp; event storytelling · Just now</div>
+            </div>
+          </div>
+          <div class="li-preview-body" id="postPreviewCopy"></div>
+          <div class="li-preview-images" id="postPreviewImages"></div>
+          <div class="li-preview-actions">
+            <span>👍 Like</span><span>💬 Comment</span><span>🔁 Repost</span><span>✈️ Send</span>
           </div>
         </div>
-        <div class="li-preview-body" id="postPreviewCopy"></div>
-        <div class="li-preview-images" id="postPreviewImages"></div>
-        <div class="li-preview-actions">
-          <span>👍 Like</span><span>💬 Comment</span><span>🔁 Repost</span><span>✈️ Send</span>
+        <label>Images (carousel — up to 9)
+          <input type="file" id="f-images-input" accept="image/*" multiple>
+        </label>
+        <div class="carousel-editor" id="carouselEditor" hidden>
+          <div class="carousel-viewport">
+            <button type="button" class="carousel-nav prev" id="carouselPrev" aria-label="Previous image">‹</button>
+            <img id="carouselImg" alt="Carousel slide preview">
+            <button type="button" class="carousel-nav next" id="carouselNext" aria-label="Next image">›</button>
+            <button type="button" class="carousel-remove" id="carouselRemove" aria-label="Remove this slide">✕</button>
+            <span class="carousel-count" id="carouselCount"></span>
+          </div>
+          <div class="carousel-dots" id="carouselDots"></div>
         </div>
       </div>
-      <div class="emoji-picker" id="emojiPicker" hidden>
-        <div class="emoji-tabs" id="emojiTabs" role="tablist" aria-label="Emoji categories"></div>
-        <div class="emoji-grid" id="emojiGrid"></div>
-      </div>
-      <label>Images (carousel — up to 9)
-        <input type="file" id="f-images-input" accept="image/*" multiple>
-      </label>
-      <div class="carousel-editor" id="carouselEditor" hidden>
-        <div class="carousel-viewport">
-          <button type="button" class="carousel-nav prev" id="carouselPrev" aria-label="Previous image">‹</button>
-          <img id="carouselImg" alt="Carousel slide preview">
-          <button type="button" class="carousel-nav next" id="carouselNext" aria-label="Next image">›</button>
-          <button type="button" class="carousel-remove" id="carouselRemove" aria-label="Remove this slide">✕</button>
-          <span class="carousel-count" id="carouselCount"></span>
-        </div>
-        <div class="carousel-dots" id="carouselDots"></div>
-      </div>
+
       <div class="modal-actions">
         <button type="button" class="btn btn-danger" id="deleteBtn" hidden>Delete</button>
         <div class="spacer"></div>
@@ -1178,62 +1204,87 @@
     </div>
     <p class="last-edited-note" id="ideaLastEdited" hidden></p>
     <form id="ideaForm">
-      <label>Idea Title
-        <input type="text" id="i-title" placeholder="e.g. Behind the scenes of our Q3 flagship shoot" required>
-      </label>
-      <div class="field-row">
-        <label>Content Bucket
-          <select id="i-bucket" required></select>
+      <div class="form-section">
+        <p class="form-section-label">Details</p>
+        <label>Idea Title
+          <input type="text" id="i-title" placeholder="e.g. Behind the scenes of our Q3 flagship shoot" required>
         </label>
-        <div class="field-col">
-          <label for="i-owner-input">Owners</label>
-          <div class="owner-input-row">
-            <input type="text" id="i-owner-input" placeholder="Add an owner..." list="ownerNamesList">
-            <button type="button" class="btn btn-ghost small" id="addIdeaOwnerBtn">Add</button>
+        <div class="field-row">
+          <label>Content Bucket
+            <select id="i-bucket" required></select>
+          </label>
+          <div class="field-col">
+            <label for="i-owner-input">Owners</label>
+            <div class="owner-input-row">
+              <input type="text" id="i-owner-input" placeholder="Add an owner..." list="ownerNamesList">
+              <button type="button" class="btn btn-ghost small" id="addIdeaOwnerBtn">Add</button>
+            </div>
+            <div class="owner-chip-list" id="ideaOwnerChips"></div>
           </div>
-          <div class="owner-chip-list" id="ideaOwnerChips"></div>
         </div>
       </div>
-      <div class="field-col">
-        <label>Tasks</label>
-        <div class="task-list" id="ideaTaskList"></div>
-        <div class="task-add-row">
-          <input type="text" id="i-task-input" placeholder="Add a task...">
-          <select id="i-task-assignee"><option value="">Assign to...</option></select>
-          <button type="button" class="btn btn-ghost small" id="addIdeaTaskBtn">Add</button>
+
+      <div class="form-section">
+        <p class="form-section-label">Tasks</p>
+        <div class="field-col">
+          <div class="task-list" id="ideaTaskList"></div>
+          <div class="task-add-row">
+            <input type="text" id="i-task-input" placeholder="Add a task...">
+            <select id="i-task-assignee"><option value="">Assign to...</option></select>
+            <button type="button" class="btn btn-ghost small" id="addIdeaTaskBtn">Add</button>
+          </div>
         </div>
       </div>
-      <div class="field-col">
-        <label for="i-notes">Idea / Brief</label>
-        <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
-        <div class="notes-links" id="notesLinks"></div>
-      </div>
 
-      <div class="field-col">
-        <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
-        <div class="idea-link-row">
-          <input type="url" id="i-image-link" placeholder="https://...">
-          <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
+      <div class="form-section">
+        <p class="form-section-label">Brief</p>
+        <div class="field-col">
+          <label for="i-notes">Idea / Brief</label>
+          <div class="textarea-emoji-wrap">
+            <textarea id="i-notes" placeholder="What's the angle? Any references, hooks, or notes for whoever drafts this..."></textarea>
+            <button type="button" class="icon-btn emoji-inline-btn" id="ideaEmojiToggleBtn" aria-expanded="false" aria-controls="ideaEmojiPicker" aria-label="Insert emoji" title="Insert emoji">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </button>
+            <div class="emoji-picker" id="ideaEmojiPicker" hidden>
+              <div class="emoji-tabs" id="ideaEmojiTabs" role="tablist" aria-label="Emoji categories"></div>
+              <div class="emoji-grid" id="ideaEmojiGrid"></div>
+            </div>
+          </div>
+          <div class="notes-links" id="notesLinks"></div>
         </div>
-        <div class="idea-image-grid" id="ideaImageGrid"></div>
+        <div class="field-col">
+          <label for="i-image-link">Image links (optional — paste a URL to a reference image)</label>
+          <div class="idea-link-row">
+            <input type="url" id="i-image-link" placeholder="https://...">
+            <button type="button" class="btn btn-ghost small" id="addIdeaImageBtn">Add</button>
+          </div>
+          <div class="idea-image-grid" id="ideaImageGrid"></div>
+        </div>
       </div>
 
-      <div class="idea-stage-row">
-        <label>Stage
-          <select id="i-stage"></select>
-        </label>
+      <div class="form-section">
+        <p class="form-section-label">Stage &amp; Feedback</p>
+        <div class="idea-stage-row">
+          <label>Stage
+            <select id="i-stage"></select>
+          </label>
+        </div>
+        <div class="field-col">
+          <label>Feedback &amp; iteration log</label>
+          <div class="feedback-log" id="feedbackLog"></div>
+        </div>
+        <div class="feedback-input-row">
+          <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
+          <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
+        </div>
       </div>
 
-      <div class="field-col">
-        <label>Feedback &amp; iteration log</label>
-        <div class="feedback-log" id="feedbackLog"></div>
-      </div>
-      <div class="feedback-input-row">
-        <textarea id="i-feedback-input" placeholder="Add a round of feedback or a note for next revision..." rows="2"></textarea>
-        <button type="button" class="btn btn-ghost small" id="addFeedbackBtn">Add</button>
-      </div>
-
-      <div class="modal-actions" style="margin-top:1.1rem;">
+      <div class="modal-actions">
         <button type="button" class="btn btn-danger" id="deleteIdeaBtn" hidden>Delete</button>
         <div class="spacer"></div>
         <button type="button" class="btn btn-ghost" id="sendToCalendarBtn" hidden>Send to Calendar →</button>
@@ -2347,23 +2398,6 @@ import {
     "Symbols": ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💯","💢","💥","💫","💦","💨","🕳️","💬","🗨️","🗯️","💭","♻️","✅","☑️","✔️","❌","❎","➕","➖","➗","✖️","💠","🔥","⭐","🌟","✨","⚡","☀️","⛅","☁️","🌧️","❗","❓","‼️","⁉️","💯","🔔","🔕","🎵","🎶","💤","🚩","🏁","🎌","🏆"],
     "Flags": ["🏳️","🏴","🏳️‍🌈","🇸🇬","🇲🇾","🇮🇩","🇹🇭","🇻🇳","🇵🇭","🇯🇵","🇰🇷","🇨🇳","🇭🇰","🇮🇳","🇦🇺","🇳🇿","🇬🇧","🇺🇸","🇨🇦","🇩🇪","🇫🇷","🇦🇪"]
   };
-  var emojiPicker = document.getElementById("emojiPicker");
-  var emojiTabsEl = document.getElementById("emojiTabs");
-  var emojiGridEl = document.getElementById("emojiGrid");
-  var emojiToggleBtn = document.getElementById("emojiToggleBtn");
-  var currentEmojiCategory = Object.keys(EMOJI_CATEGORIES)[0];
-
-  function renderEmojiTabs() {
-    emojiTabsEl.innerHTML = Object.keys(EMOJI_CATEGORIES).map(function (cat) {
-      return '<button type="button" class="emoji-tab' + (cat === currentEmojiCategory ? " active" : "") +
-        '" data-cat="' + cat + '" role="tab" aria-selected="' + (cat === currentEmojiCategory) + '">' + cat + '</button>';
-    }).join("");
-  }
-  function renderEmojiGrid() {
-    emojiGridEl.innerHTML = EMOJI_CATEGORIES[currentEmojiCategory].map(function (em) {
-      return '<button type="button" class="emoji-btn" data-emoji="' + em + '" aria-label="Insert ' + em + '">' + em + '</button>';
-    }).join("");
-  }
   function insertAtCursor(textarea, text) {
     var start = textarea.selectionStart == null ? textarea.value.length : textarea.selectionStart;
     var end = textarea.selectionEnd == null ? textarea.value.length : textarea.selectionEnd;
@@ -2374,25 +2408,54 @@ import {
     textarea.setSelectionRange(pos, pos);
   }
 
-  emojiTabsEl.addEventListener("click", function (e) {
-    var btn = e.target.closest(".emoji-tab");
-    if (!btn) return;
-    currentEmojiCategory = btn.dataset.cat;
-    renderEmojiTabs();
-    renderEmojiGrid();
-  });
-  emojiGridEl.addEventListener("click", function (e) {
-    var btn = e.target.closest(".emoji-btn");
-    if (!btn) return;
-    insertAtCursor(fCopy, btn.dataset.emoji);
-    updateCopyCharCount();
-  });
-  emojiToggleBtn.addEventListener("click", function () {
-    var willOpen = emojiPicker.hidden;
-    emojiPicker.hidden = !willOpen;
-    emojiToggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-    if (willOpen) { renderEmojiTabs(); renderEmojiGrid(); }
-  });
+  function createEmojiPicker(toggleBtn, pickerEl, tabsEl, gridEl, textarea, onInsert) {
+    var currentCategory = Object.keys(EMOJI_CATEGORIES)[0];
+    function renderTabs() {
+      tabsEl.innerHTML = Object.keys(EMOJI_CATEGORIES).map(function (cat) {
+        return '<button type="button" class="emoji-tab' + (cat === currentCategory ? " active" : "") +
+          '" data-cat="' + cat + '" role="tab" aria-selected="' + (cat === currentCategory) + '">' + cat + '</button>';
+      }).join("");
+    }
+    function renderGrid() {
+      gridEl.innerHTML = EMOJI_CATEGORIES[currentCategory].map(function (em) {
+        return '<button type="button" class="emoji-btn" data-emoji="' + em + '" aria-label="Insert ' + em + '">' + em + '</button>';
+      }).join("");
+    }
+    tabsEl.addEventListener("click", function (e) {
+      var btn = e.target.closest(".emoji-tab");
+      if (!btn) return;
+      currentCategory = btn.dataset.cat;
+      renderTabs();
+      renderGrid();
+    });
+    gridEl.addEventListener("click", function (e) {
+      var btn = e.target.closest(".emoji-btn");
+      if (!btn) return;
+      insertAtCursor(textarea, btn.dataset.emoji);
+      if (onInsert) onInsert();
+    });
+    toggleBtn.addEventListener("click", function () {
+      var willOpen = pickerEl.hidden;
+      pickerEl.hidden = !willOpen;
+      toggleBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (willOpen) { renderTabs(); renderGrid(); }
+    });
+    return {
+      close: function () {
+        pickerEl.hidden = true;
+        toggleBtn.setAttribute("aria-expanded", "false");
+      }
+    };
+  }
+
+  var postEmojiCtrl = createEmojiPicker(
+    document.getElementById("emojiToggleBtn"),
+    document.getElementById("emojiPicker"),
+    document.getElementById("emojiTabs"),
+    document.getElementById("emojiGrid"),
+    fCopy,
+    updateCopyCharCount
+  );
 
   var sendToCalendarSourceIdeaId = null;
 
@@ -2444,8 +2507,7 @@ import {
     }
     updateCopyCharCount();
     renderCarouselEditor();
-    emojiPicker.hidden = true;
-    emojiToggleBtn.setAttribute("aria-expanded", "false");
+    postEmojiCtrl.close();
     postPreviewPanel.hidden = true;
     postPreviewToggleBtn.setAttribute("aria-expanded", "false");
     modalBackdrop.classList.add("open");
@@ -2558,6 +2620,14 @@ import {
   var ideaTasksCtrl = createTaskListInput(document.getElementById("ideaTaskList"), document.getElementById("i-task-input"), document.getElementById("i-task-assignee"), function () { return ideaOwnersCtrl.get(); });
   document.getElementById("addIdeaTaskBtn").addEventListener("click", function () { ideaTasksCtrl.add(); });
   var iNotes = document.getElementById("i-notes");
+  var ideaEmojiCtrl = createEmojiPicker(
+    document.getElementById("ideaEmojiToggleBtn"),
+    document.getElementById("ideaEmojiPicker"),
+    document.getElementById("ideaEmojiTabs"),
+    document.getElementById("ideaEmojiGrid"),
+    iNotes,
+    null
+  );
   var iStage = document.getElementById("i-stage");
   var iFeedbackInput = document.getElementById("i-feedback-input");
   var feedbackLogEl = document.getElementById("feedbackLog");
@@ -2778,6 +2848,7 @@ import {
     renderIdeaImageGrid();
     renderNotesLinks();
     iFeedbackInput.value = "";
+    ideaEmojiCtrl.close();
     ideaBackdrop.classList.add("open");
     ideaBackdrop.setAttribute("aria-hidden", "false");
     setTimeout(function () { iTitle.focus(); }, 10);
