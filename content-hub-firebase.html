@@ -1,4 +1,5 @@
 <title>MediaShock APAC - LinkedIn Content Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   :root {
     --bg: #f4f6f8;
@@ -639,6 +640,9 @@
     .kanban-board { grid-template-columns: 1fr; }
     .upcoming-columns { grid-template-columns: 1fr; gap: 1.1rem 0; }
     .upcoming-col + .upcoming-col { border-left: none; margin-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 1.1rem; }
+    /* Phones are viewing-only for Posts/Ideas -- creation entry points are hidden here;
+       tapping an existing post/idea card still opens it, just read-only (see isMobileView()). */
+    #newPostBtn, #newIdeaBtn, .day-add { display: none; }
   }
 
   /* ---------- modal ---------- */
@@ -656,8 +660,31 @@
   }
   .modal-backdrop.open .modal { transform: translateY(0) scale(1); }
   .modal.modal-wide { max-width: 40rem; }
-  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 0.6rem; }
   .modal-head h3 { margin: 0; font-size: 1.05rem; font-weight: 700; }
+  .modal-head-title { display: flex; align-items: center; gap: 0.55rem; min-width: 0; }
+  .view-only-badge {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 0.14rem 0.5rem; border-radius: 999px; border: 1px solid var(--border);
+    color: var(--text-faint); background: var(--surface-alt); white-space: nowrap; flex-shrink: 0;
+  }
+
+  /* ---------- mobile view-only lock (Post/Idea modals, phones only -- see isMobileView()) ---------- */
+  .modal.view-only .owner-input-row,
+  .modal.view-only .image-link-row,
+  .modal.view-only .idea-link-row,
+  .modal.view-only .owner-chip-remove,
+  .modal.view-only .image-remove,
+  .modal.view-only #emojiToggleBtn,
+  .modal.view-only #ideaEmojiToggleBtn {
+    display: none;
+  }
+  .modal.view-only input:disabled,
+  .modal.view-only select:disabled,
+  .modal.view-only textarea:disabled {
+    opacity: 0.75; cursor: default;
+  }
+  .modal.view-only .status-picker-trigger:disabled { opacity: 0.75; cursor: default; }
 
   #postForm, #ideaForm { display: flex; flex-direction: column; gap: 0; }
   #postForm label, #ideaForm label, #goalForm label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; color: var(--text-soft); }
@@ -771,8 +798,20 @@
   @media (max-width: 720px) {
     .field-row { grid-template-columns: 1fr; }
     .week-grid, .month-grid { grid-template-columns: repeat(7, minmax(2.4rem, 1fr)); }
-    .day-cell { min-height: 5rem; padding: 0.35rem; }
-    .week-col { min-height: auto; }
+    .day-cell { min-height: 5rem; padding: 0.35rem; overflow: hidden; }
+    .week-col { min-height: auto; overflow: hidden; }
+    .app { padding: 1rem 0.85rem 3rem; }
+    .brand h1 { font-size: 1.05rem; }
+    .topbar-actions { flex-wrap: wrap; justify-content: flex-end; }
+    .tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .tab-btn { white-space: nowrap; }
+    .nav-controls h2 { min-width: 0; }
+    .modal-backdrop { padding: 0.75rem; }
+    .modal { padding: 1.1rem 1rem 1.3rem; max-height: 94vh; }
+    .pc-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
+  @media (max-width: 480px) {
+    .mini-stats, .goal-stats { gap: 1rem; flex-wrap: wrap; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -936,7 +975,7 @@
         <p class="analytics-sub" id="analyticsRange"></p>
         <p class="analytics-sub" id="followerSourceNote"></p>
       </div>
-      <div style="display:flex;gap:0.6rem;">
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
         <button class="btn btn-ghost" id="editGoalBtn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9"></circle>
@@ -1145,7 +1184,10 @@
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
-      <h3 id="modalTitle">New Post</h3>
+      <div class="modal-head-title">
+        <h3 id="modalTitle">New Post</h3>
+        <span class="view-only-badge" id="postViewOnlyBadge" hidden>View only</span>
+      </div>
       <button class="icon-btn" id="modalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p class="last-edited-note" id="postLastEdited" hidden></p>
@@ -1272,7 +1314,10 @@
 <div class="modal-backdrop" id="ideaBackdrop">
   <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="ideaModalTitle">
     <div class="modal-head">
-      <h3 id="ideaModalTitle">New Idea</h3>
+      <div class="modal-head-title">
+        <h3 id="ideaModalTitle">New Idea</h3>
+        <span class="view-only-badge" id="ideaViewOnlyBadge" hidden>View only</span>
+      </div>
       <button class="icon-btn" id="ideaModalClose" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
     </div>
     <p class="last-edited-note" id="ideaLastEdited" hidden></p>
@@ -1966,6 +2011,12 @@ import {
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 
+  // Same breakpoint the layout switches to a single-column phone layout at (see CSS).
+  // Post/Idea modals open read-only below this width -- creating and editing is desktop-only.
+  function isMobileView() {
+    return window.matchMedia("(max-width: 720px)").matches;
+  }
+
   function formatTime12(t) {
     var parts = t.split(":"); var h = parseInt(parts[0], 10); var m = parts[1];
     var suffix = h >= 12 ? "pm" : "am"; var h12 = h % 12; if (h12 === 0) h12 = 12;
@@ -2411,6 +2462,9 @@ import {
   // ---------- calendar: modal add/edit ----------
   var modalBackdrop = document.getElementById("modalBackdrop");
   var modalTitle = document.getElementById("modalTitle");
+  var postModalEl = modalBackdrop.querySelector(".modal");
+  var postViewOnlyBadge = document.getElementById("postViewOnlyBadge");
+  var cancelBtn = document.getElementById("cancelBtn");
   var postForm = document.getElementById("postForm");
   var fTitle = document.getElementById("f-title");
   var fBucket = document.getElementById("f-bucket");
@@ -2713,6 +2767,20 @@ import {
 
   var sendToCalendarSourceIdeaId = null;
 
+  function setPostReadOnly(readOnly) {
+    postModalEl.classList.toggle("view-only", readOnly);
+    postViewOnlyBadge.hidden = !readOnly;
+    fTitle.readOnly = readOnly;
+    fBucket.disabled = readOnly;
+    statusPickerTrigger.disabled = readOnly;
+    fDate.readOnly = readOnly;
+    fTime.readOnly = readOnly;
+    fCopy.readOnly = readOnly;
+    if (readOnly) deleteBtn.hidden = true;
+    postForm.querySelector('button[type="submit"]').hidden = readOnly;
+    cancelBtn.textContent = readOnly ? "Close" : "Cancel";
+  }
+
   function openModal(postId, prefillDate, prefillData) {
     lastFocused = document.activeElement;
     editingId = postId;
@@ -2769,9 +2837,10 @@ import {
     postEmojiCtrl.close();
     postPreviewPanel.hidden = true;
     postPreviewToggleBtn.setAttribute("aria-expanded", "false");
+    setPostReadOnly(isMobileView());
     modalBackdrop.classList.add("open");
     modalBackdrop.setAttribute("aria-hidden", "false");
-    setTimeout(function () { fTitle.focus(); }, 10);
+    if (!isMobileView()) setTimeout(function () { fTitle.focus(); }, 10);
   }
 
   function closeModal() {
@@ -2789,7 +2858,7 @@ import {
 
   document.getElementById("newPostBtn").addEventListener("click", function () { openModal(null); });
   document.getElementById("modalClose").addEventListener("click", closeModal);
-  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  cancelBtn.addEventListener("click", closeModal);
   // Deliberately no click-outside-to-close here -- accidental clicks off a long
   // post draft shouldn't discard it. Use Cancel/close button or Escape instead.
 
@@ -2858,6 +2927,9 @@ import {
   // ---------- content planner ----------
   var ideaBackdrop = document.getElementById("ideaBackdrop");
   var ideaModalTitle = document.getElementById("ideaModalTitle");
+  var ideaModalEl = ideaBackdrop.querySelector(".modal");
+  var ideaViewOnlyBadge = document.getElementById("ideaViewOnlyBadge");
+  var ideaCancelBtn = document.getElementById("ideaCancelBtn");
   var ideaForm = document.getElementById("ideaForm");
   var iTitle = document.getElementById("i-title");
   var iBucket = document.getElementById("i-bucket");
@@ -3087,6 +3159,22 @@ import {
     feedbackLogEl.scrollTop = feedbackLogEl.scrollHeight;
   }
 
+  function setIdeaReadOnly(readOnly) {
+    ideaModalEl.classList.toggle("view-only", readOnly);
+    ideaViewOnlyBadge.hidden = !readOnly;
+    iTitle.readOnly = readOnly;
+    iBucket.disabled = readOnly;
+    iNotes.readOnly = readOnly;
+    iStage.disabled = readOnly;
+    if (readOnly) {
+      deleteIdeaBtn.hidden = true;
+      sendToCalendarBtn.hidden = true;
+    }
+    ideaForm.querySelector('button[type="submit"]').hidden = readOnly;
+    ideaCancelBtn.textContent = readOnly ? "Close" : "Cancel";
+    // Feedback stays live even in view-only -- adding a comment isn't "editing" the idea.
+  }
+
   function openIdeaModal(ideaId) {
     ideaLastFocused = document.activeElement;
     editingIdeaId = ideaId;
@@ -3132,9 +3220,10 @@ import {
     renderNotesLinks();
     iFeedbackInput.value = "";
     ideaEmojiCtrl.close();
+    setIdeaReadOnly(isMobileView());
     ideaBackdrop.classList.add("open");
     ideaBackdrop.setAttribute("aria-hidden", "false");
-    setTimeout(function () { iTitle.focus(); }, 10);
+    if (!isMobileView()) setTimeout(function () { iTitle.focus(); }, 10);
   }
 
   function closeIdeaModal() {
@@ -3151,7 +3240,7 @@ import {
 
   document.getElementById("newIdeaBtn").addEventListener("click", function () { openIdeaModal(null); });
   document.getElementById("ideaModalClose").addEventListener("click", closeIdeaModal);
-  document.getElementById("ideaCancelBtn").addEventListener("click", closeIdeaModal);
+  ideaCancelBtn.addEventListener("click", closeIdeaModal);
   // Deliberately no click-outside-to-close here -- see the note on modalBackdrop above.
 
   ideaForm.addEventListener("submit", function (e) {
